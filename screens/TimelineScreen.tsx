@@ -165,6 +165,13 @@ export const TimelineScreen: React.FC<TimelineScreenProps> = ({
           onClose={() => setViewingEvent(null)}
           onDelete={onDeleteEvent}
           onUpdate={onUpdateEvent}
+          onDeleteImage={async (imageUrl) => {
+            // Update event to remove the image
+            const updatedImages = viewingEvent.images.filter(img => img !== imageUrl);
+            await onUpdateEvent(viewingEvent.id, { images: updatedImages });
+            // Update local state
+            setViewingEvent(prev => prev ? { ...prev, images: updatedImages } : null);
+          }}
         />
       )}
     </div>

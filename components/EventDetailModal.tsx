@@ -11,6 +11,7 @@ interface EventDetailModalProps {
     onClose: () => void;
     onDelete: (id: string) => Promise<void>;
     onUpdate: (id: string, data: Partial<DetailItem>) => Promise<void>;
+    onDeleteImage?: (imageUrl: string) => Promise<void>;
 }
 
 // Helper to check if URL is a video
@@ -48,7 +49,8 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
     type,
     onClose,
     onDelete,
-    onUpdate
+    onUpdate,
+    onDeleteImage
 }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
@@ -282,7 +284,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
         return (
             <div className="fixed inset-0 z-[200] bg-black flex flex-col">
                 {/* Header */}
-                <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4 bg-gradient-to-b from-black/60 to-transparent">
+                <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4 bg-gradient-to-b from-black/60 to-transparent safe-area-top">
                     <button
                         onClick={() => setViewingImageIndex(null)}
                         className="text-white p-2 rounded-full hover:bg-white/10"
@@ -292,12 +294,33 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                     <span className="text-white text-sm font-medium">
                         {viewingImageIndex + 1} / {images.length}
                     </span>
-                    <button
-                        onClick={() => downloadFile(currentImage)}
-                        className="text-white p-2 rounded-full hover:bg-white/10"
-                    >
-                        <Download size={24} />
-                    </button>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => downloadFile(currentImage)}
+                            className="text-white p-2 rounded-full hover:bg-white/10"
+                            title="下载原图"
+                        >
+                            <Download size={24} />
+                        </button>
+                        {onDeleteImage && (
+                            <button
+                                onClick={async () => {
+                                    if (window.confirm('确定要删除这张图片吗？')) {
+                                        await onDeleteImage(currentImage);
+                                        if (images.length <= 1) {
+                                            setViewingImageIndex(null);
+                                        } else if (viewingImageIndex >= images.length - 1) {
+                                            setViewingImageIndex(images.length - 2);
+                                        }
+                                    }
+                                }}
+                                className="text-white p-2 rounded-full hover:bg-red-500/50"
+                                title="删除图片"
+                            >
+                                <Trash2 size={24} />
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 {/* Image/Video */}
@@ -371,9 +394,9 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                 className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-[2px] p-0 sm:p-4 animate-fade-in"
                 onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
             >
-                {/* Modal Content */}
+                {/* Modal Content - reduced height, safe area aware */}
                 <div
-                    className="bg-white w-full max-w-md h-[85vh] sm:h-auto sm:max-h-[85vh] rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-slide-up"
+                    className="bg-white w-full max-w-md max-h-[80vh] rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-slide-up"
                     style={{ touchAction: 'pan-y' }}
                 >
                     {/* Close button in header */}
