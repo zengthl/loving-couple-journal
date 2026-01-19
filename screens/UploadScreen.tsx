@@ -94,11 +94,12 @@ export const UploadScreen: React.FC<UploadScreenProps> = ({ provinces, onBack, o
                 <select
                   value={selectedProvinceId}
                   onChange={(e) => setSelectedProvinceId(e.target.value)}
-                  className="w-full bg-transparent border-none p-0 text-text-main font-bold focus:ring-0 text-sm"
+                  className="w-full bg-white border-none p-0 text-text-main font-bold focus:ring-0 text-sm"
+                  style={{ backgroundColor: '#ffffff', color: '#1a1a2e' }}
                 >
-                  <option value="" disabled>点击选择省份</option>
+                  <option value="" disabled style={{ backgroundColor: '#ffffff', color: '#1a1a2e' }}>点击选择省份</option>
                   {provinces.map(p => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
+                    <option key={p.id} value={p.id} style={{ backgroundColor: '#ffffff', color: '#1a1a2e' }}>{p.name}</option>
                   ))}
                 </select>
               </div>

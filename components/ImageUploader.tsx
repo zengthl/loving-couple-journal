@@ -18,28 +18,33 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
     children
 }) => {
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-    const [previews, setPreviews] = useState<string[]>([]);
+    const [previews, setPreviews] = useState<{ url: string; isVideo: boolean }[]>([]);
     const [uploading, setUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
     const [error, setError] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    const isVideoFile = (file: File) => file.type.startsWith('video/');
+
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files: File[] = Array.from(e.target.files || []);
 
         if (files.length + selectedFiles.length > maxImages) {
-            setError(`最多只能选择 ${maxImages} 张图片`);
+            setError(`最多只能选择 ${maxImages} 个文件`);
             return;
         }
 
         setError('');
 
         // Create previews
-        const newPreviews: string[] = [];
+        const newPreviews: { url: string; isVideo: boolean }[] = [];
         files.forEach(file => {
             const reader = new FileReader();
             reader.onloadend = () => {
-                newPreviews.push(reader.result as string);
+                newPreviews.push({
+                    url: reader.result as string,
+                    isVideo: isVideoFile(file)
+                });
                 if (newPreviews.length === files.length) {
                     setPreviews([...previews, ...newPreviews]);
                 }
@@ -57,7 +62,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
 
     const handleUpload = async () => {
         if (selectedFiles.length === 0) {
-            setError('请先选择图片');
+            setError('请先选择图片或视频');
             return;
         }
 
@@ -66,13 +71,19 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
         setUploadProgress(0);
 
         try {
-            // Compress images before upload
-            const compressedFiles = await Promise.all(
-                selectedFiles.map(file => compressImage(file, 1200, 0.85))
+            // Compress images before upload, skip compression for videos
+            const processedFiles = await Promise.all(
+                selectedFiles.map(file => {
+                    if (isVideoFile(file)) {
+                        // 视频文件不压缩，直接返回
+                        return Promise.resolve(file);
+                    }
+                    return compressImage(file, 1200, 0.85);
+                })
             );
 
             // Upload to Supabase
-            const results = await uploadMultipleImages(compressedFiles, userId, folder);
+            const results = await uploadMultipleImages(processedFiles, userId, folder);
 
             // Check for errors
             const errors = results.filter(r => r.error);
@@ -106,7 +117,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
             <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/*,video/*,.heic,.heif"
                 multiple
                 onChange={handleFileSelect}
                 className="hidden"
@@ -124,8 +135,8 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
                     className="w-full border-2 border-dashed border-gray-300 rounded-xl p-8 flex flex-col items-center justify-center gap-2 hover:border-primary hover:bg-primary/5 transition-colors"
                 >
                     <Upload size={32} className="text-gray-400" />
-                    <p className="text-sm font-medium text-text-sub">点击选择图片</p>
-                    <p className="text-xs text-text-sub/60">支持 JPG、PNG、WebP、GIF（最大 5MB）</p>
+                    <p className="text-sm font-medium text-text-sub">点击选择图片或视频</p>
+                    <p className="text-xs text-text-sub/60">支持 JPG、PNG、WebP、GIF 图片和 MP4、MOV 视频</p>
                 </button>
             )}
 
@@ -141,13 +152,27 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
                 <div className="grid grid-cols-3 gap-2">
                     {previews.map((preview, index) => (
                         <div key={index} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
-                            <img src={preview} alt={`Preview ${index + 1}`} className="w-full h-full object-cover" />
+                            {preview.isVideo ? (
+                                <video
+                                    src={preview.url}
+                                    className="w-full h-full object-cover"
+                                    muted
+                                    playsInline
+                                />
+                            ) : (
+                                <img src={preview.url} alt={`Preview ${index + 1}`} className="w-full h-full object-cover" />
+                            )}
                             <button
                                 onClick={() => removeImage(index)}
                                 className="absolute top-1 right-1 bg-black/50 rounded-full p-1 hover:bg-black/70 transition-colors"
                             >
                                 <X size={16} className="text-white" />
                             </button>
+                            {preview.isVideo && (
+                                <div className="absolute bottom-1 left-1 bg-black/50 rounded px-1.5 py-0.5">
+                                    <span className="text-white text-xs">视频</span>
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>
@@ -159,7 +184,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
                     onClick={handleUpload}
                     className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 rounded-xl shadow-lg shadow-primary/30 transition-all active:scale-[0.98]"
                 >
-                    上传 {selectedFiles.length} 张图片
+                    上传 {selectedFiles.length} 个文件
                 </button>
             )}
 

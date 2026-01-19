@@ -1,7 +1,11 @@
 import { supabase } from './supabase';
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+// 允许的图片类型（包括iPhone HEIC格式）
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif'];
+// 允许的视频类型
+const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/quicktime', 'video/webm', 'video/x-msvideo'];
+// 所有允许的文件类型
+const ALLOWED_FILE_TYPES = [...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES];
 
 export interface UploadResult {
     url: string;
@@ -26,18 +30,11 @@ export async function uploadImage(
         return {
             url: '',
             path: '',
-            error: '只支持 JPG、PNG、WebP 和 GIF 格式的图片'
+            error: '只支持 JPG、PNG、WebP、GIF、HEIC 格式的图片或 MP4、MOV、WebM 格式的视频'
         };
     }
 
-    // Validate file size
-    if (file.size > MAX_FILE_SIZE) {
-        return {
-            url: '',
-            path: '',
-            error: '图片大小不能超过 5MB'
-        };
-    }
+    // 不再限制文件大小，允许上传任意大小的图片和视频
 
     // Generate unique filename
     const fileExt = file.name.split('.').pop();
