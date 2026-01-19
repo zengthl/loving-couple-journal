@@ -212,33 +212,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                     <span className="text-white text-sm font-medium">
                         {viewingImageIndex + 1} / {images.length}
                     </span>
-                    <div className="flex gap-2">
-                        <button
-                            onClick={() => downloadFile(currentImage)}
-                            className="text-white p-2 rounded-full hover:bg-white/10"
-                            title="下载原图"
-                        >
-                            <Download size={24} />
-                        </button>
-                        {onDeleteImage && (
-                            <button
-                                onClick={async () => {
-                                    if (window.confirm('确定要删除这张图片吗？')) {
-                                        await onDeleteImage(currentImage);
-                                        if (images.length <= 1) {
-                                            setViewingImageIndex(null);
-                                        } else if (viewingImageIndex >= images.length - 1) {
-                                            setViewingImageIndex(images.length - 2);
-                                        }
-                                    }
-                                }}
-                                className="text-white p-2 rounded-full hover:bg-red-500/50"
-                                title="删除图片"
-                            >
-                                <Trash2 size={24} />
-                            </button>
-                        )}
-                    </div>
+                    <div className="w-10"></div>
                 </div>
 
                 {/* Image/Video */}
@@ -283,25 +257,55 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                     </>
                 )}
 
-                {/* Thumbnails */}
-                {images.length > 1 && (
-                    <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 px-4">
-                        {images.map((img, idx) => (
+                {/* Thumbnails + Actions */}
+                <div className="absolute bottom-0 left-0 right-0 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-6 bg-gradient-to-t from-black/70 to-transparent">
+                    {images.length > 1 && (
+                        <div className="flex justify-center gap-2 mb-4">
+                            {images.map((img, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={() => setViewingImageIndex(idx)}
+                                    className={`w-12 h-12 rounded-lg overflow-hidden border-2 transition-all ${idx === viewingImageIndex ? 'border-white scale-110' : 'border-transparent opacity-60'
+                                        }`}
+                                >
+                                    {isVideoUrl(img) ? (
+                                        <video src={img} className="w-full h-full object-cover" muted playsInline />
+                                    ) : (
+                                        <img src={img} alt="" className="w-full h-full object-cover" />
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
+                    <div className="flex items-center justify-center gap-6">
+                        <button
+                            onClick={() => downloadFile(currentImage)}
+                            className="bg-white/15 hover:bg-white/25 text-white px-5 py-2 rounded-full backdrop-blur-md flex items-center gap-2 transition-all active:scale-95"
+                        >
+                            <Download size={18} />
+                            <span className="text-sm font-bold">????</span>
+                        </button>
+                        {onDeleteImage && (
                             <button
-                                key={idx}
-                                onClick={() => setViewingImageIndex(idx)}
-                                className={`w-12 h-12 rounded-lg overflow-hidden border-2 transition-all ${idx === viewingImageIndex ? 'border-white scale-110' : 'border-transparent opacity-60'
-                                    }`}
+                                onClick={async () => {
+                                    if (window.confirm('???????????')) {
+                                        await onDeleteImage(currentImage);
+                                        if (images.length <= 1) {
+                                            setViewingImageIndex(null);
+                                        } else if (viewingImageIndex >= images.length - 1) {
+                                            setViewingImageIndex(images.length - 2);
+                                        }
+                                    }
+                                }}
+                                className="bg-red-500/80 hover:bg-red-500 text-white px-5 py-2 rounded-full backdrop-blur-md flex items-center gap-2 transition-all active:scale-95"
                             >
-                                {isVideoUrl(img) ? (
-                                    <video src={img} className="w-full h-full object-cover" muted playsInline />
-                                ) : (
-                                    <img src={img} alt="" className="w-full h-full object-cover" />
-                                )}
+                                <Trash2 size={18} />
+                                <span className="text-sm font-bold">??</span>
                             </button>
-                        ))}
+                        )}
                     </div>
-                )}
+                </div>
             </div>
         );
     };
@@ -309,7 +313,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
     return (
         <>
             <div
-                className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-[2px] p-0 sm:p-4 animate-fade-in"
+                className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-[2px] p-0 sm:p-4 animate-fade-in"
                 onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
             >
                 {/* Modal Content - reduced height, safe area aware */}
@@ -405,7 +409,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                     </div>
 
                     {/* Footer Actions */}
-                    <div className="p-4 border-t border-gray-100 bg-white flex gap-3 flex-shrink-0">
+                    <div className="p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] border-t border-gray-100 bg-white flex gap-3 flex-shrink-0">
                         {isEditing ? (
                             <button
                                 onClick={handleSave}
