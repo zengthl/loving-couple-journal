@@ -1,0 +1,7 @@
+{
+  "name": "Loving - Couple Journal",
+  "description": "A romantic shared journal application for couples to track memories, anniversaries, food recipes, and travel footprints.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
