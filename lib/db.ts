@@ -408,3 +408,82 @@ export async function deleteProvincePhoto(userId: string, provinceId: string, ph
     return true;
 }
 
+export async function removePhotoFromUserProvinces(userId: string, photoUrl: string): Promise<boolean> {
+    const { data: visits, error } = await supabase
+        .from('user_province_visits')
+        .select('province_id, photos')
+        .eq('user_id', userId)
+        .contains('photos', [photoUrl]);
+
+    if (error) {
+        console.error('Error fetching province visits for photo cleanup:', error);
+        return false;
+    }
+
+    if (!visits || visits.length === 0) {
+        return true;
+    }
+
+    for (const visit of visits) {
+        const nextPhotos = (visit.photos || []).filter((p: string) => p !== photoUrl);
+        if (nextPhotos.length === 0) {
+            const { error: deleteError } = await supabase
+                .from('user_province_visits')
+                .delete()
+                .eq('user_id', userId)
+                .eq('province_id', visit.province_id);
+
+            if (deleteError) {
+                console.error('Error deleting empty province visit:', deleteError);
+                return false;
+            }
+        } else {
+            const { error: updateError } = await supabase
+                .from('user_province_visits')
+                .update({ photos: nextPhotos })
+                .eq('user_id', userId)
+                .eq('province_id', visit.province_id);
+
+            if (updateError) {
+                console.error('Error updating province photos:', updateError);
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+export async function removeImageFromTimelineEvents(userId: string, imageUrl: string): Promise<boolean> {
+    const { data: events, error } = await supabase
+        .from('timeline_events')
+        .select('id, images')
+        .eq('user_id', userId)
+        .contains('images', [imageUrl]);
+
+    if (error) {
+        console.error('Error fetching timeline events for image cleanup:', error);
+        return false;
+    }
+
+    if (!events || events.length === 0) {
+        return true;
+    }
+
+    for (const event of events) {
+        const nextImages = (event.images || []).filter((img: string) => img !== imageUrl);
+        const { error: updateError } = await supabase
+            .from('timeline_events')
+            .update({ images: nextImages })
+            .eq('id', event.id)
+            .eq('user_id', userId);
+
+        if (updateError) {
+            console.error('Error updating timeline event images:', updateError);
+            return false;
+        }
+    }
+
+    return true;
+}
+

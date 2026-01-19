@@ -9,6 +9,7 @@ interface AlbumListScreenProps {
   onBack: () => void;
   userId: string;
   onRefresh: () => void;
+  onDeletePhoto?: (photoUrl: string) => Promise<void>;
 }
 
 // Helper to check if URL is a video
@@ -56,7 +57,7 @@ const batchDownload = async (
   }
 };
 
-export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({ provinces, onBack, userId, onRefresh }) => {
+export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({ provinces, onBack, userId, onRefresh, onDeletePhoto }) => {
   const [selectedProvince, setSelectedProvince] = useState<Province | null>(null);
   const [viewingPhoto, setViewingPhoto] = useState<string | null>(null);
   const [isSelectMode, setIsSelectMode] = useState(false);
@@ -71,11 +72,15 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({ provinces, onB
 
     const success = await deleteProvincePhoto(userId, selectedProvince.id, viewingPhoto);
     if (success) {
+      const photoToDelete = viewingPhoto;
       setViewingPhoto(null);
+      if (onDeletePhoto) {
+        await onDeletePhoto(photoToDelete);
+      }
       onRefresh();
       setSelectedProvince(prev => prev ? ({
         ...prev,
-        photos: prev.photos.filter(p => p !== viewingPhoto)
+        photos: prev.photos.filter(p => p !== photoToDelete)
       }) : null);
     } else {
       alert('删除失败，请重试');
@@ -339,4 +344,3 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({ provinces, onB
     </div>
   );
 };
-

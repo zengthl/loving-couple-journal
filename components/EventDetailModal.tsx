@@ -127,7 +127,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
         }
     };
 
-    // Apple Photos-style grid layout for multiple images
+    // Album-style grid layout for multiple images
     const renderImageGrid = () => {
         if (images.length === 0) {
             return (
@@ -161,110 +161,28 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
             );
         }
 
-        if (images.length === 2) {
-            return (
-                <div className="grid grid-cols-2 gap-1 rounded-2xl overflow-hidden">
-                    {images.map((img, idx) => {
-                        const isVideo = isVideoUrl(img);
-                        return (
-                            <div
-                                key={idx}
-                                className="relative aspect-square bg-gray-100 cursor-pointer group"
-                                onClick={() => setViewingImageIndex(idx)}
-                            >
-                                {isVideo ? (
-                                    <>
-                                        <video src={img} className="w-full h-full object-cover" muted playsInline />
-                                        <div className="absolute inset-0 flex items-center justify-center">
-                                            <div className="w-10 h-10 rounded-full bg-black/50 flex items-center justify-center">
-                                                <Play size={20} className="text-white ml-0.5" />
-                                            </div>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <img src={img} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                                )}
-                            </div>
-                        );
-                    })}
-                </div>
-            );
-        }
-
-        if (images.length === 3) {
-            return (
-                <div className="grid grid-cols-2 gap-1 rounded-2xl overflow-hidden">
-                    <div
-                        className="relative row-span-2 bg-gray-100 cursor-pointer group"
-                        onClick={() => setViewingImageIndex(0)}
-                    >
-                        {isVideoUrl(images[0]) ? (
-                            <>
-                                <video src={images[0]} className="w-full h-full object-cover" muted playsInline />
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <div className="w-12 h-12 rounded-full bg-black/50 flex items-center justify-center">
-                                        <Play size={24} className="text-white ml-0.5" />
-                                    </div>
-                                </div>
-                            </>
-                        ) : (
-                            <img src={images[0]} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                        )}
-                    </div>
-                    {images.slice(1, 3).map((img, idx) => {
-                        const isVideo = isVideoUrl(img);
-                        return (
-                            <div
-                                key={idx}
-                                className="relative aspect-square bg-gray-100 cursor-pointer group"
-                                onClick={() => setViewingImageIndex(idx + 1)}
-                            >
-                                {isVideo ? (
-                                    <>
-                                        <video src={img} className="w-full h-full object-cover" muted playsInline />
-                                        <div className="absolute inset-0 flex items-center justify-center">
-                                            <div className="w-8 h-8 rounded-full bg-black/50 flex items-center justify-center">
-                                                <Play size={16} className="text-white ml-0.5" />
-                                            </div>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <img src={img} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                                )}
-                            </div>
-                        );
-                    })}
-                </div>
-            );
-        }
-
-        // 4+ images: 2x2 grid with +N overlay
         return (
-            <div className="grid grid-cols-2 gap-1 rounded-2xl overflow-hidden">
-                {images.slice(0, 4).map((img, idx) => {
+            <div className="grid grid-cols-3 gap-0.5 rounded-2xl overflow-hidden">
+                {images.map((img, idx) => {
                     const isVideo = isVideoUrl(img);
-                    const isLast = idx === 3 && images.length > 4;
+                    const isPrimary = idx === 0;
                     return (
                         <div
                             key={idx}
-                            className="relative aspect-square bg-gray-100 cursor-pointer group"
+                            className={`relative ${isPrimary ? 'col-span-2 row-span-2' : 'col-span-1 row-span-1'} bg-gray-100 overflow-hidden cursor-pointer group aspect-square`}
                             onClick={() => setViewingImageIndex(idx)}
                         >
                             {isVideo ? (
-                                <>
-                                    <video src={img} className="w-full h-full object-cover" muted playsInline />
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <div className="w-10 h-10 rounded-full bg-black/50 flex items-center justify-center">
-                                            <Play size={20} className="text-white ml-0.5" />
-                                        </div>
-                                    </div>
-                                </>
+                                <video src={img} className="w-full h-full object-cover" muted playsInline />
                             ) : (
                                 <img src={img} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                             )}
-                            {isLast && (
-                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                                    <span className="text-white text-2xl font-bold">+{images.length - 4}</span>
+
+                            {isVideo && (
+                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                    <div className="w-10 h-10 rounded-full bg-black/50 flex items-center justify-center">
+                                        <Play size={20} className="text-white ml-0.5" />
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -413,7 +331,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
 
                     {/* Content */}
                     <div
-                        className="flex-1 overflow-y-auto p-4 bg-white"
+                        className="flex-1 min-h-0 overflow-y-auto p-4 bg-white"
                         style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}
                     >
                         {/* Image Gallery */}

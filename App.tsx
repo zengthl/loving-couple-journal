@@ -10,7 +10,7 @@ import { AlbumListScreen } from './screens/AlbumListScreen';
 import { LoginScreen } from './screens/LoginScreen';
 import { RegisterScreen } from './screens/RegisterScreen';
 import { ScreenName, TimelineEvent, Province, DiscoveryItem, Anniversary } from './types';
-import { deleteTimelineEvent, updateTimelineEvent } from './lib/db';
+import { deleteTimelineEvent, removeImageFromTimelineEvents, removePhotoFromUserProvinces, updateTimelineEvent } from './lib/db';
 import { useTimelineEvents, useProvinces, useDiscoveryItems, useAnniversaries } from './lib/hooks';
 import { useAuth } from './lib/useAuth';
 import { signOut } from './lib/auth';
@@ -78,6 +78,18 @@ export default function App() {
 
   const handleUpdateTimelineEvent = async (id: string, data: Partial<TimelineEvent>) => {
     await updateTimelineEvent(id, data);
+    await reloadTimeline();
+  };
+
+  const handleSyncDeleteFromTimeline = async (imageUrl: string) => {
+    if (!user?.id) return;
+    await removePhotoFromUserProvinces(user.id, imageUrl);
+    await reloadProvinces();
+  };
+
+  const handleSyncDeleteFromAlbum = async (imageUrl: string) => {
+    if (!user?.id) return;
+    await removeImageFromTimelineEvents(user.id, imageUrl);
     await reloadTimeline();
   };
 
@@ -196,6 +208,7 @@ export default function App() {
             onAddClick={() => setActiveScreen(ScreenName.UPLOAD)}
             onDeleteEvent={handleDeleteTimelineEvent}
             onUpdateEvent={handleUpdateTimelineEvent}
+            onDeleteImageSync={handleSyncDeleteFromTimeline}
           />
         );
       case ScreenName.ANNIVERSARY:
@@ -240,10 +253,19 @@ export default function App() {
             onBack={() => setActiveScreen(ScreenName.MAP)}
             userId={user!.id}
             onRefresh={reloadProvinces}
+            onDeletePhoto={handleSyncDeleteFromAlbum}
           />
         );
       default:
-        return <TimelineScreen events={timelineEvents} onAddClick={() => setActiveScreen(ScreenName.UPLOAD)} />;
+        return (
+          <TimelineScreen
+            events={timelineEvents}
+            onAddClick={() => setActiveScreen(ScreenName.UPLOAD)}
+            onDeleteEvent={handleDeleteTimelineEvent}
+            onUpdateEvent={handleUpdateTimelineEvent}
+            onDeleteImageSync={handleSyncDeleteFromTimeline}
+          />
+        );
     }
   };
 

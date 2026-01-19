@@ -8,13 +8,15 @@ interface TimelineScreenProps {
   onAddClick?: () => void;
   onDeleteEvent: (id: string) => Promise<void>;
   onUpdateEvent: (id: string, data: Partial<TimelineEvent>) => Promise<void>;
+  onDeleteImageSync?: (imageUrl: string) => Promise<void>;
 }
 
 export const TimelineScreen: React.FC<TimelineScreenProps> = ({
   events,
   onAddClick,
   onDeleteEvent,
-  onUpdateEvent
+  onUpdateEvent,
+  onDeleteImageSync
 }) => {
   const [viewingEvent, setViewingEvent] = useState<TimelineEvent | null>(null);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
@@ -169,6 +171,9 @@ export const TimelineScreen: React.FC<TimelineScreenProps> = ({
             // Update event to remove the image
             const updatedImages = viewingEvent.images.filter(img => img !== imageUrl);
             await onUpdateEvent(viewingEvent.id, { images: updatedImages });
+            if (onDeleteImageSync) {
+              await onDeleteImageSync(imageUrl);
+            }
             // Update local state
             setViewingEvent(prev => prev ? { ...prev, images: updatedImages } : null);
           }}
