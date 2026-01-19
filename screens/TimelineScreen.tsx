@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { ArrowLeft, Lock, Heart, MapPin, Store, Film, Waves, Plus } from 'lucide-react';
 import { TimelineEvent } from '../types';
 import { EventDetailModal } from '../components/EventDetailModal';
@@ -17,6 +17,8 @@ export const TimelineScreen: React.FC<TimelineScreenProps> = ({
   onUpdateEvent
 }) => {
   const [viewingEvent, setViewingEvent] = useState<TimelineEvent | null>(null);
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const isLongPress = useRef(false);
 
   // Group unique months/years
   const months = Array.from(new Set(events.map(e => `${e.year}-${e.month}`)))
@@ -24,6 +26,35 @@ export const TimelineScreen: React.FC<TimelineScreenProps> = ({
       const [year, month] = str.split('-');
       return { year, month };
     });
+
+  const handleLongPressStart = (event: TimelineEvent) => {
+    isLongPress.current = false;
+    longPressTimer.current = setTimeout(() => {
+      isLongPress.current = true;
+      // Vibrate if supported
+      if (navigator.vibrate) {
+        navigator.vibrate(50);
+      }
+      if (window.confirm(`确定要删除"${event.title}"吗？`)) {
+        onDeleteEvent(event.id);
+      }
+    }, 500); // 500ms long press
+  };
+
+  const handleLongPressEnd = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  };
+
+  const handleClick = (event: TimelineEvent) => {
+    // Only open detail if not a long press
+    if (!isLongPress.current) {
+      setViewingEvent(event);
+    }
+    isLongPress.current = false;
+  };
 
   return (
     <div className="flex flex-col h-full bg-background-light">
@@ -68,10 +99,16 @@ export const TimelineScreen: React.FC<TimelineScreenProps> = ({
                       <div className="absolute -left-[9px] top-4 w-4 h-4 rounded-full bg-background-light border-[3px] border-primary z-10 box-content"></div>
                     )}
 
-                    {/* Card */}
+                    {/* Card with long press */}
                     <div
-                      onClick={() => setViewingEvent(event)}
-                      className="bg-white rounded-2xl p-3 shadow-card hover:shadow-soft transition-all duration-300 transform active:scale-[0.98] cursor-pointer"
+                      onClick={() => handleClick(event)}
+                      onTouchStart={() => handleLongPressStart(event)}
+                      onTouchEnd={handleLongPressEnd}
+                      onTouchCancel={handleLongPressEnd}
+                      onMouseDown={() => handleLongPressStart(event)}
+                      onMouseUp={handleLongPressEnd}
+                      onMouseLeave={handleLongPressEnd}
+                      className="bg-white rounded-2xl p-3 shadow-card hover:shadow-soft transition-all duration-300 transform active:scale-[0.98] cursor-pointer select-none"
                     >
                       {/* Image Area */}
                       {event.images.length > 0 && (
@@ -105,6 +142,11 @@ export const TimelineScreen: React.FC<TimelineScreenProps> = ({
                           <p className="text-sm text-gray-600 line-clamp-1">{event.note}</p>
                         </div>
                       )}
+
+                      {/* Long press hint */}
+                      <div className="mt-2 text-center">
+                        <span className="text-[10px] text-gray-300">长按可删除</span>
+                      </div>
                     </div>
                   </div>
                 ))}

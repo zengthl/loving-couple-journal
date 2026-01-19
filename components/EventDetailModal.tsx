@@ -39,7 +39,23 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
             setEditNote('note' in item ? item.note || '' : '');
             setIsEditing(false);
             setIsSaving(false);
+
+            // Disable body scroll when modal is open
+            document.body.style.overflow = 'hidden';
+            document.body.style.position = 'fixed';
+            document.body.style.width = '100%';
+            document.body.style.top = `-${window.scrollY}px`;
         }
+
+        return () => {
+            // Re-enable body scroll when modal closes
+            const scrollY = document.body.style.top;
+            document.body.style.overflow = '';
+            document.body.style.position = '';
+            document.body.style.width = '';
+            document.body.style.top = '';
+            window.scrollTo(0, parseInt(scrollY || '0') * -1);
+        };
     }, [isOpen, item]);
 
     if (!isOpen) return null;

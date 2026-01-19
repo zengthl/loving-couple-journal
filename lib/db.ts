@@ -379,17 +379,32 @@ export async function deleteProvincePhoto(userId: string, provinceId: string, ph
     // 2. Filter out the photo
     const newPhotos = (currentVisit.photos || []).filter((p: string) => p !== photoUrl);
 
-    // 3. Update the record
-    const { error: updateError } = await supabase
-        .from('user_province_visits')
-        .update({ photos: newPhotos })
-        .eq('user_id', userId)
-        .eq('province_id', provinceId);
+    // 3. If no photos left, delete the entire visit record (unvisit the province)
+    if (newPhotos.length === 0) {
+        const { error: deleteError } = await supabase
+            .from('user_province_visits')
+            .delete()
+            .eq('user_id', userId)
+            .eq('province_id', provinceId);
 
-    if (updateError) {
-        console.error('Error updating province photos:', updateError);
-        return false;
+        if (deleteError) {
+            console.error('Error deleting province visit:', deleteError);
+            return false;
+        }
+    } else {
+        // 4. Otherwise just update the photos array
+        const { error: updateError } = await supabase
+            .from('user_province_visits')
+            .update({ photos: newPhotos })
+            .eq('user_id', userId)
+            .eq('province_id', provinceId);
+
+        if (updateError) {
+            console.error('Error updating province photos:', updateError);
+            return false;
+        }
     }
 
     return true;
 }
+
