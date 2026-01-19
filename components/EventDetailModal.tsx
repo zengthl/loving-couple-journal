@@ -284,12 +284,12 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                             className="bg-white/15 hover:bg-white/25 text-white px-5 py-2 rounded-full backdrop-blur-md flex items-center gap-2 transition-all active:scale-95"
                         >
                             <Download size={18} />
-                            <span className="text-sm font-bold">????</span>
+                            <span className="text-sm font-bold">下载原图</span>
                         </button>
                         {onDeleteImage && (
                             <button
                                 onClick={async () => {
-                                    if (window.confirm('???????????')) {
+                                    if (window.confirm('确定要删除这张图片吗？')) {
                                         await onDeleteImage(currentImage);
                                         if (images.length <= 1) {
                                             setViewingImageIndex(null);
@@ -301,7 +301,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                                 className="bg-red-500/80 hover:bg-red-500 text-white px-5 py-2 rounded-full backdrop-blur-md flex items-center gap-2 transition-all active:scale-95"
                             >
                                 <Trash2 size={18} />
-                                <span className="text-sm font-bold">??</span>
+                                <span className="text-sm font-bold">删除</span>
                             </button>
                         )}
                     </div>
