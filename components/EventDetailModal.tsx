@@ -80,9 +80,15 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-[2px] p-0 sm:p-4 animate-fade-in">
+        <div
+            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-[2px] p-0 sm:p-4 animate-fade-in"
+            onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+        >
             {/* Modal Content */}
-            <div className="bg-white w-full max-w-md h-[85vh] sm:h-auto sm:max-h-[85vh] rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-slide-up">
+            <div
+                className="bg-white w-full max-w-md h-[85vh] sm:h-auto sm:max-h-[85vh] rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-slide-up"
+                style={{ touchAction: 'pan-y' }}
+            >
 
                 {/* Header Image Slide */}
                 <div className="relative h-64 bg-gray-100 flex-shrink-0">
@@ -113,7 +119,10 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto p-6">
+                <div
+                    className="flex-1 overflow-y-auto p-6 bg-white"
+                    style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}
+                >
                     {isEditing ? (
                         <div className="space-y-4">
                             <div>
@@ -181,7 +190,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                 </div>
 
                 {/* Footer Actions */}
-                <div className="p-4 border-t border-gray-100 bg-white flex gap-3">
+                <div className="p-4 border-t border-gray-100 bg-white flex gap-3 flex-shrink-0">
                     {isEditing ? (
                         <button
                             onClick={handleSave}
@@ -195,7 +204,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                         <>
                             <button
                                 onClick={() => setIsEditing(true)}
-                                className="flex-1 bg-primary/10 hover:bg-primary/20 text-primary py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-colors"
+                                className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-600 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-colors border border-blue-100"
                             >
                                 <Edit2 size={16} />
                                 编辑
@@ -203,7 +212,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
 
                             <button
                                 onClick={handleDelete}
-                                className="flex-1 bg-red-50 hover:bg-red-100 text-red-500 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-colors"
+                                className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-colors border border-red-100"
                             >
                                 <Trash2 size={16} />
                                 删除

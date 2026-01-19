@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Upload, X, Loader } from 'lucide-react';
-import { uploadMultipleImages, compressImage } from '../lib/storage';
+import { uploadMultipleImages } from '../lib/storage';
 
 interface ImageUploaderProps {
     userId: string;
@@ -71,19 +71,9 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
         setUploadProgress(0);
 
         try {
-            // Compress images before upload, skip compression for videos
-            const processedFiles = await Promise.all(
-                selectedFiles.map(file => {
-                    if (isVideoFile(file)) {
-                        // 视频文件不压缩，直接返回
-                        return Promise.resolve(file);
-                    }
-                    return compressImage(file, 1200, 0.85);
-                })
-            );
-
+            // 直接上传原图，不压缩，保证下载的是原图质量
             // Upload to Supabase
-            const results = await uploadMultipleImages(processedFiles, userId, folder);
+            const results = await uploadMultipleImages(selectedFiles, userId, folder);
 
             // Check for errors
             const errors = results.filter(r => r.error);

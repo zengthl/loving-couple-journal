@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, MapPin, Calendar, X } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, X, ChevronRight, Check } from 'lucide-react';
 import { Province } from '../types';
 import { ImageUploader } from '../components/ImageUploader';
 
@@ -16,6 +16,9 @@ export const UploadScreen: React.FC<UploadScreenProps> = ({ provinces, onBack, o
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [note, setNote] = useState('');
   const [photos, setPhotos] = useState<string[]>([]);
+  const [showProvincePicker, setShowProvincePicker] = useState(false);
+
+  const selectedProvince = provinces.find(p => p.id === selectedProvinceId);
 
   const handleSubmit = () => {
     if (!selectedProvinceId || !city) return;
@@ -85,25 +88,22 @@ export const UploadScreen: React.FC<UploadScreenProps> = ({ provinces, onBack, o
 
           {/* Location */}
           <div className="space-y-4">
-            <div className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:border-primary/30 transition-colors">
+            {/* Province Picker Button */}
+            <button
+              onClick={() => setShowProvincePicker(true)}
+              className="w-full flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:border-primary/30 transition-colors text-left"
+            >
               <div className="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center text-orange-500">
                 <MapPin size={18} />
               </div>
               <div className="flex-1">
                 <label className="text-xs font-bold text-gray-400 block mb-0.5">选择省份</label>
-                <select
-                  value={selectedProvinceId}
-                  onChange={(e) => setSelectedProvinceId(e.target.value)}
-                  className="w-full bg-white border-none p-0 text-text-main font-bold focus:ring-0 text-sm"
-                  style={{ backgroundColor: '#ffffff', color: '#1a1a2e' }}
-                >
-                  <option value="" disabled style={{ backgroundColor: '#ffffff', color: '#1a1a2e' }}>点击选择省份</option>
-                  {provinces.map(p => (
-                    <option key={p.id} value={p.id} style={{ backgroundColor: '#ffffff', color: '#1a1a2e' }}>{p.name}</option>
-                  ))}
-                </select>
+                <span className={`text-sm font-bold ${selectedProvince ? 'text-text-main' : 'text-gray-400'}`}>
+                  {selectedProvince ? selectedProvince.name : '点击选择省份'}
+                </span>
               </div>
-            </div>
+              <ChevronRight size={20} className="text-gray-400" />
+            </button>
 
             <div className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:border-primary/30 transition-colors">
               <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-500">
@@ -139,6 +139,42 @@ export const UploadScreen: React.FC<UploadScreenProps> = ({ provinces, onBack, o
           </div>
         </div>
       </div>
+
+      {/* Province Picker Modal */}
+      {showProvincePicker && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white w-full max-w-md max-h-[70vh] rounded-t-3xl shadow-2xl flex flex-col animate-slide-up">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-100">
+              <button onClick={() => setShowProvincePicker(false)} className="text-gray-500 font-medium">
+                取消
+              </button>
+              <h3 className="text-lg font-bold text-text-main">选择省份</h3>
+              <div className="w-10"></div>
+            </div>
+
+            {/* Province List */}
+            <div className="flex-1 overflow-y-auto">
+              {provinces.map(p => (
+                <button
+                  key={p.id}
+                  onClick={() => {
+                    setSelectedProvinceId(p.id);
+                    setShowProvincePicker(false);
+                  }}
+                  className="w-full flex items-center justify-between px-6 py-4 border-b border-gray-50 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                >
+                  <span className="text-base text-text-main font-medium">{p.name}</span>
+                  {selectedProvinceId === p.id && (
+                    <Check size={20} className="text-primary" />
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+
