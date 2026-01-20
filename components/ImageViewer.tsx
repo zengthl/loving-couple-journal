@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { X, Trash2, Download, Play, Pause } from 'lucide-react';
 
 interface ImageViewerProps {
@@ -14,9 +14,6 @@ const isVideoUrl = (url: string): boolean => {
     const lowerUrl = url.toLowerCase();
     return videoExtensions.some(ext => lowerUrl.includes(ext));
 };
-
-const LIVE_PHOTO_MAX_SECONDS = 4.5;
-const LIVE_PHOTO_PRESS_DELAY_MS = 200;
 
 const getFilenameFromUrl = (url: string): string => {
     try {
@@ -57,90 +54,20 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
     onDelete
 }) => {
     const [isPlaying, setIsPlaying] = useState(false);
-    const [isLivePhoto, setIsLivePhoto] = useState(false);
     const videoRef = useRef<HTMLVideoElement>(null);
-    const livePressTimerRef = useRef<number | null>(null);
-    const livePressTriggeredRef = useRef(false);
 
     if (!isOpen) return null;
 
     const isVideo = isVideoUrl(imageUrl);
 
-    useEffect(() => {
-        setIsPlaying(false);
-        setIsLivePhoto(false);
-        livePressTriggeredRef.current = false;
-        if (livePressTimerRef.current) {
-            clearTimeout(livePressTimerRef.current);
-            livePressTimerRef.current = null;
-        }
-    }, [imageUrl, isOpen]);
-
     const togglePlay = () => {
-        if (videoRef.current && !isLivePhoto) {
+        if (videoRef.current) {
             if (isPlaying) {
                 videoRef.current.pause();
             } else {
                 videoRef.current.play();
             }
             setIsPlaying(!isPlaying);
-        }
-    };
-
-    const clearLivePressTimer = () => {
-        if (livePressTimerRef.current) {
-            clearTimeout(livePressTimerRef.current);
-            livePressTimerRef.current = null;
-        }
-    };
-
-    const startLivePlayback = () => {
-        if (!videoRef.current) return;
-        videoRef.current.currentTime = 0;
-        const playPromise = videoRef.current.play();
-        if (playPromise) {
-            playPromise.catch(() => undefined);
-        }
-    };
-
-    const stopLivePlayback = () => {
-        if (!videoRef.current) return;
-        videoRef.current.pause();
-        videoRef.current.currentTime = 0;
-    };
-
-    const handleLivePointerDown = () => {
-        if (!isLivePhoto) return;
-        livePressTriggeredRef.current = false;
-        clearLivePressTimer();
-        livePressTimerRef.current = window.setTimeout(() => {
-            livePressTriggeredRef.current = true;
-            startLivePlayback();
-        }, LIVE_PHOTO_PRESS_DELAY_MS);
-    };
-
-    const handleLivePointerUp = () => {
-        if (!isLivePhoto) return;
-        clearLivePressTimer();
-        if (livePressTriggeredRef.current) {
-            stopLivePlayback();
-            livePressTriggeredRef.current = false;
-        }
-    };
-
-    const handleLivePointerLeave = () => {
-        if (!isLivePhoto) return;
-        clearLivePressTimer();
-        if (livePressTriggeredRef.current) {
-            stopLivePlayback();
-            livePressTriggeredRef.current = false;
-        }
-    };
-
-    const handleVideoMetadata = (event: React.SyntheticEvent<HTMLVideoElement>) => {
-        const duration = event.currentTarget.duration;
-        if (Number.isFinite(duration) && duration > 0) {
-            setIsLivePhoto(duration <= LIVE_PHOTO_MAX_SECONDS);
         }
     };
 
@@ -167,19 +94,14 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
                             src={imageUrl}
                             className="max-h-full max-w-full object-contain shadow-2xl"
                             playsInline
-                            loop={!isLivePhoto}
-                            onClick={isLivePhoto ? undefined : togglePlay}
-                            onPointerDown={handleLivePointerDown}
-                            onPointerUp={handleLivePointerUp}
-                            onPointerLeave={handleLivePointerLeave}
-                            onPointerCancel={handleLivePointerLeave}
-                            onContextMenu={isLivePhoto ? (event) => event.preventDefault() : undefined}
+                            preload="metadata"
+                            loop
+                            onClick={togglePlay}
                             onPlay={() => setIsPlaying(true)}
                             onPause={() => setIsPlaying(false)}
-                            onLoadedMetadata={handleVideoMetadata}
                         />
                         {/* Play/Pause Overlay */}
-                        {!isPlaying && !isLivePhoto && (
+                        {!isPlaying && (
                             <button
                                 onClick={togglePlay}
                                 className="absolute inset-0 flex items-center justify-center bg-black/20"
@@ -188,11 +110,6 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
                                     <Play size={32} className="text-gray-800 ml-1" />
                                 </div>
                             </button>
-                        )}
-                        {isLivePhoto && (
-                            <div className="absolute top-4 left-4 px-2 py-1 rounded-full bg-black/50 text-white text-[10px] font-semibold tracking-widest pointer-events-none">
-                                LIVE
-                            </div>
                         )}
                     </div>
                 ) : (
@@ -208,7 +125,7 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
                 <div className="flex items-center justify-center gap-6">
                     {/* Video Play/Pause Button */}
-                    {isVideo && !isLivePhoto && (
+                    {isVideo && (
                         <button
                             onClick={togglePlay}
                             className="bg-white/20 hover:bg-white/30 text-white px-5 py-2 rounded-full backdrop-blur-md flex items-center gap-2 transition-all active:scale-95"
