@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { ArrowLeft, Lock, Heart, MapPin, Store, Film, Waves, Plus } from 'lucide-react';
+import { ArrowLeft, Lock, Heart, MapPin, Store, Film, Waves, Plus, Play } from 'lucide-react';
 import { TimelineEvent } from '../types';
 import { EventDetailModal } from '../components/EventDetailModal';
 
@@ -10,6 +10,12 @@ interface TimelineScreenProps {
   onUpdateEvent: (id: string, data: Partial<TimelineEvent>) => Promise<void>;
   onDeleteImageSync?: (imageUrl: string) => Promise<void>;
 }
+
+const isVideoUrl = (url: string): boolean => {
+  const videoExtensions = ['.mp4', '.mov', '.webm', '.avi', '.m4v'];
+  const lowerUrl = url.toLowerCase();
+  return videoExtensions.some(ext => lowerUrl.includes(ext));
+};
 
 export const TimelineScreen: React.FC<TimelineScreenProps> = ({
   events,
@@ -115,9 +121,31 @@ export const TimelineScreen: React.FC<TimelineScreenProps> = ({
                       {/* Image Area */}
                       {event.images.length > 0 && (
                         <div className={`relative w-full overflow-hidden rounded-xl mb-3 bg-gray-100 ${event.images.length > 1 ? 'grid grid-cols-2 gap-1 aspect-[4/3]' : 'aspect-[4/3]'}`}>
-                          {event.images.slice(0, 4).map((img, i) => (
-                            <img key={i} src={img} alt={event.title} className="h-full w-full object-cover" />
-                          ))}
+                          {event.images.slice(0, 4).map((img, i) => {
+                            const isVideo = isVideoUrl(img);
+                            return (
+                              <div key={i} className="relative h-full w-full">
+                                {isVideo ? (
+                                  <video
+                                    src={img}
+                                    className="h-full w-full object-cover"
+                                    muted
+                                    playsInline
+                                    preload="metadata"
+                                  />
+                                ) : (
+                                  <img src={img} alt={event.title} className="h-full w-full object-cover" />
+                                )}
+                                {isVideo && (
+                                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                    <div className="w-10 h-10 rounded-full bg-black/50 flex items-center justify-center">
+                                      <Play size={20} className="text-white ml-0.5" />
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
 
