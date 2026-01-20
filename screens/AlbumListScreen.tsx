@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Image as ImageIcon, MapPin, Grid, Calendar, Play, Download, CheckCircle, Loader } from 'lucide-react';
 import { Province } from '../types';
 import { ImageViewer } from '../components/ImageViewer';
@@ -17,6 +17,155 @@ const isVideoUrl = (url: string): boolean => {
   const videoExtensions = ['.mp4', '.mov', '.webm', '.avi', '.m4v'];
   const lowerUrl = url.toLowerCase();
   return videoExtensions.some(ext => lowerUrl.includes(ext));
+};
+
+const LIVE_PHOTO_MAX_SECONDS = 4.5;
+const LIVE_PHOTO_PRESS_DELAY_MS = 200;
+
+interface MediaTileProps {
+  src: string;
+  isVideo: boolean;
+  isLivePhoto: boolean;
+  isPrimary: boolean;
+  isSelectMode: boolean;
+  isSelected: boolean;
+  onView: () => void;
+  onSelect: () => void;
+  onVideoMetadata?: (duration: number) => void;
+}
+
+const MediaTile: React.FC<MediaTileProps> = ({
+  src,
+  isVideo,
+  isLivePhoto,
+  isPrimary,
+  isSelectMode,
+  isSelected,
+  onView,
+  onSelect,
+  onVideoMetadata
+}) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const livePressTimerRef = useRef<number | null>(null);
+  const livePressTriggeredRef = useRef(false);
+
+  const clearLivePressTimer = () => {
+    if (livePressTimerRef.current) {
+      clearTimeout(livePressTimerRef.current);
+      livePressTimerRef.current = null;
+    }
+  };
+
+  const startLivePlayback = () => {
+    if (!videoRef.current) return;
+    videoRef.current.currentTime = 0;
+    const playPromise = videoRef.current.play();
+    if (playPromise) {
+      playPromise.catch(() => undefined);
+    }
+  };
+
+  const stopLivePlayback = () => {
+    if (!videoRef.current) return;
+    videoRef.current.pause();
+    videoRef.current.currentTime = 0;
+  };
+
+  const handlePointerDown = () => {
+    if (!isLivePhoto || isSelectMode) return;
+    livePressTriggeredRef.current = false;
+    clearLivePressTimer();
+    livePressTimerRef.current = window.setTimeout(() => {
+      livePressTriggeredRef.current = true;
+      startLivePlayback();
+    }, LIVE_PHOTO_PRESS_DELAY_MS);
+  };
+
+  const handlePointerUp = () => {
+    if (!isLivePhoto || isSelectMode) return;
+    clearLivePressTimer();
+    if (livePressTriggeredRef.current) {
+      stopLivePlayback();
+    }
+  };
+
+  const handlePointerLeave = () => {
+    if (!isLivePhoto || isSelectMode) return;
+    clearLivePressTimer();
+    if (livePressTriggeredRef.current) {
+      stopLivePlayback();
+      livePressTriggeredRef.current = false;
+    }
+  };
+
+  const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (isLivePhoto && livePressTriggeredRef.current) {
+      livePressTriggeredRef.current = false;
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+
+    if (isSelectMode) {
+      onSelect();
+    } else {
+      onView();
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      clearLivePressTimer();
+      stopLivePlayback();
+    };
+  }, []);
+
+  return (
+    <div
+      onClick={handleClick}
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
+      onPointerLeave={handlePointerLeave}
+      onPointerCancel={handlePointerLeave}
+      onContextMenu={isLivePhoto ? (event) => event.preventDefault() : undefined}
+      className={`relative ${isPrimary ? 'col-span-2 row-span-2' : 'col-span-1 row-span-1'} bg-gray-100 overflow-hidden cursor-pointer hover:opacity-95 transition-opacity aspect-square`}
+    >
+      {isVideo ? (
+        <video
+          ref={videoRef}
+          src={src}
+          className="w-full h-full object-cover"
+          muted
+          playsInline
+          preload="metadata"
+          onLoadedMetadata={(event) => onVideoMetadata?.(event.currentTarget.duration)}
+        />
+      ) : (
+        <img src={src} alt="" className="w-full h-full object-cover" />
+      )}
+
+      {isLivePhoto && (
+        <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded-full bg-black/60 text-white text-[10px] font-semibold tracking-widest">
+          LIVE
+        </div>
+      )}
+
+      {!isLivePhoto && isVideo && !isSelectMode && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="w-10 h-10 rounded-full bg-black/50 flex items-center justify-center">
+            <Play size={20} className="text-white ml-0.5" />
+          </div>
+        </div>
+      )}
+
+      {isSelectMode && (
+        <div className={`absolute top-2 right-2 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${isSelected ? 'bg-primary border-primary' : 'bg-white/80 border-gray-300'
+          }`}>
+          {isSelected && <CheckCircle size={16} className="text-white" />}
+        </div>
+      )}
+    </div>
+  );
 };
 
 // Download file function
@@ -64,6 +213,7 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({ provinces, onB
   const [selectedPhotos, setSelectedPhotos] = useState<Set<string>>(new Set());
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState({ current: 0, total: 0 });
+  const [livePhotoMap, setLivePhotoMap] = useState<Record<string, boolean>>({});
 
   const visitedProvinces = provinces.filter(p => p.visited);
 
@@ -139,6 +289,17 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({ provinces, onB
     } finally {
       setIsDownloading(false);
     }
+  };
+
+  const updateLivePhotoStatus = (photoUrl: string, duration: number) => {
+    if (!Number.isFinite(duration) || duration <= 0) return;
+    const isLive = duration <= LIVE_PHOTO_MAX_SECONDS;
+    setLivePhotoMap(prev => {
+      if (prev[photoUrl] === isLive) {
+        return prev;
+      }
+      return { ...prev, [photoUrl]: isLive };
+    });
   };
 
   if (selectedProvince) {
@@ -219,36 +380,21 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({ provinces, onB
             {selectedProvince.photos.map((photo, idx) => {
               const isVideo = isVideoUrl(photo);
               const isSelected = selectedPhotos.has(photo);
+              const isLivePhoto = isVideo && livePhotoMap[photo] === true;
 
               return (
-                <div
+                <MediaTile
                   key={idx}
-                  onClick={() => isSelectMode ? togglePhotoSelection(photo) : setViewingPhoto(photo)}
-                  className={`relative ${idx === 0 ? 'col-span-2 row-span-2' : 'col-span-1 row-span-1'} bg-gray-100 overflow-hidden cursor-pointer hover:opacity-95 transition-opacity aspect-square`}
-                >
-                  {isVideo ? (
-                    <video src={photo} className="w-full h-full object-cover" muted playsInline />
-                  ) : (
-                    <img src={photo} alt="" className="w-full h-full object-cover" />
-                  )}
-
-                  {/* Video Play Icon */}
-                  {isVideo && !isSelectMode && (
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <div className="w-10 h-10 rounded-full bg-black/50 flex items-center justify-center">
-                        <Play size={20} className="text-white ml-0.5" />
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Selection Indicator */}
-                  {isSelectMode && (
-                    <div className={`absolute top-2 right-2 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${isSelected ? 'bg-primary border-primary' : 'bg-white/80 border-gray-300'
-                      }`}>
-                      {isSelected && <CheckCircle size={16} className="text-white" />}
-                    </div>
-                  )}
-                </div>
+                  src={photo}
+                  isVideo={isVideo}
+                  isLivePhoto={isLivePhoto}
+                  isPrimary={idx === 0}
+                  isSelectMode={isSelectMode}
+                  isSelected={isSelected}
+                  onView={() => setViewingPhoto(photo)}
+                  onSelect={() => togglePhotoSelection(photo)}
+                  onVideoMetadata={isVideo ? (duration) => updateLivePhotoStatus(photo, duration) : undefined}
+                />
               );
             })}
           </div>
