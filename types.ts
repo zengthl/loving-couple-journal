@@ -63,4 +63,5 @@ export interface Province {
   visited: boolean;
   date?: string;
   photos: string[];
+  cityPhotos?: Record<string, string[]>; // { cityName: [photo1, photo2, ...] }
 }

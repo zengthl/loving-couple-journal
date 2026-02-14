@@ -23,12 +23,6 @@ export function useTimelineEvents(userId: string | undefined) {
     const [error, setError] = useState<Error | null>(null);
 
     const load = useCallback(async () => {
-        if (!userId) {
-            setEvents([]);
-            setLoading(false);
-            return;
-        }
-
         setLoading(true);
         try {
             const data = await fetchTimelineEvents();
@@ -97,11 +91,12 @@ export function useProvinces(userId: string | undefined) {
     const markVisited = useCallback(async (
         provinceId: string,
         visitDate: string,
-        photos: string[]
+        photos: string[],
+        city?: string
     ) => {
         if (!userId || userId === GUEST_USER_ID) return;
 
-        await markProvinceVisited(userId, provinceId, visitDate, photos);
+        await markProvinceVisited(userId, provinceId, visitDate, photos, city);
         await load();
     }, [userId, load]);
 
@@ -116,7 +111,7 @@ export function useDiscoveryItems(userId: string | undefined) {
 
     const load = useCallback(async () => {
         if (!userId) {
-            setItems([]);
+            // No userId means not yet initialized, still loading
             setLoading(false);
             return;
         }
@@ -161,7 +156,6 @@ export function useAnniversaries(userId: string | undefined) {
 
     const load = useCallback(async () => {
         if (!userId) {
-            setAnniversaries([]);
             setLoading(false);
             return;
         }

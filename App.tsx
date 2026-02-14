@@ -185,7 +185,7 @@ export default function App() {
     await addEvent(newEvent);
 
     // 2. Update Map (Light up province)
-    await markVisited(data.provinceId, data.date.replace(/-/g, '.'), data.photos);
+    await markVisited(data.provinceId, data.date.replace(/-/g, '.'), data.photos, data.city);
 
     // 3. Navigate back to Home (Timeline)
     setActiveScreen(ScreenName.TIMELINE);

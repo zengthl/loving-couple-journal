@@ -376,29 +376,69 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({ provinces, onB
         )}
 
         <div className="flex-1 overflow-y-auto p-1">
-          {/* Photo Grid */}
-          <div className="grid grid-cols-3 gap-0.5 mb-0.5">
-            {selectedProvince.photos.map((photo, idx) => {
-              const isVideo = isVideoUrl(photo);
-              const isSelected = selectedPhotos.has(photo);
-              const isLivePhoto = isVideo && livePhotoMap[photo] === true;
+          {/* City-grouped Photo Grid */}
+          {selectedProvince.cityPhotos && Object.keys(selectedProvince.cityPhotos).length > 0 ? (
+            // Group by city
+            Object.entries(selectedProvince.cityPhotos).map(([cityName, cityPhotos]: [string, string[]]) => (
+              <div key={cityName} className="mb-6">
+                {/* City Header */}
+                <div className="px-4 py-3 flex items-center gap-2">
+                  <MapPin size={16} className="text-primary" />
+                  <h3 className="text-base font-bold text-text-main">{cityName}</h3>
+                  <span className="text-xs text-gray-400 ml-1">{cityPhotos.length} 张</span>
+                </div>
+                {/* City Photos Grid */}
+                <div className="grid grid-cols-3 gap-0.5 mb-0.5">
+                  {cityPhotos.map((photo, idx) => {
+                    const isVideo = isVideoUrl(photo);
+                    const isSelected = selectedPhotos.has(photo);
+                    const isLivePhoto = isVideo && livePhotoMap[photo] === true;
 
-              return (
-                <MediaTile
-                  key={idx}
-                  src={photo}
-                  isVideo={isVideo}
-                  isLivePhoto={isLivePhoto}
-                  isPrimary={idx === 0}
-                  isSelectMode={isSelectMode}
-                  isSelected={isSelected}
-                  onView={() => setViewingPhoto(photo)}
-                  onSelect={() => togglePhotoSelection(photo)}
-                  onVideoMetadata={isVideo ? (duration) => updateLivePhotoStatus(photo, duration) : undefined}
-                />
-              );
-            })}
-          </div>
+                    return (
+                      <MediaTile
+                        key={`${cityName}-${idx}`}
+                        src={photo}
+                        isVideo={isVideo}
+                        isLivePhoto={isLivePhoto}
+                        isPrimary={false}
+                        isSelectMode={isSelectMode}
+                        isSelected={isSelected}
+                        onView={() => setViewingPhoto(photo)}
+                        onSelect={() => togglePhotoSelection(photo)}
+                        onVideoMetadata={isVideo ? (duration) => updateLivePhotoStatus(photo, duration) : undefined}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+            ))
+          ) : (
+            // Fallback: flat photo grid (legacy data without city info)
+            <>
+              <div className="grid grid-cols-3 gap-0.5 mb-0.5">
+                {selectedProvince.photos.map((photo, idx) => {
+                  const isVideo = isVideoUrl(photo);
+                  const isSelected = selectedPhotos.has(photo);
+                  const isLivePhoto = isVideo && livePhotoMap[photo] === true;
+
+                  return (
+                    <MediaTile
+                      key={idx}
+                      src={photo}
+                      isVideo={isVideo}
+                      isLivePhoto={isLivePhoto}
+                      isPrimary={idx === 0}
+                      isSelectMode={isSelectMode}
+                      isSelected={isSelected}
+                      onView={() => setViewingPhoto(photo)}
+                      onSelect={() => togglePhotoSelection(photo)}
+                      onVideoMetadata={isVideo ? (duration) => updateLivePhotoStatus(photo, duration) : undefined}
+                    />
+                  );
+                })}
+              </div>
+            </>
+          )}
 
           <div className="p-4">
             <h3 className="text-lg font-bold text-text-main mb-2">回忆</h3>

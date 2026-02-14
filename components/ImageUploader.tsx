@@ -13,7 +13,7 @@ interface ImageUploaderProps {
 export const ImageUploader: React.FC<ImageUploaderProps> = ({
     userId,
     folder = 'general',
-    maxImages = 9,
+    maxImages = 0, // 0 means unlimited
     onUploadComplete,
     children
 }) => {
@@ -29,7 +29,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files: File[] = Array.from(e.target.files || []);
 
-        if (files.length + selectedFiles.length > maxImages) {
+        if (maxImages > 0 && files.length + selectedFiles.length > maxImages) {
             setError(`最多只能选择 ${maxImages} 个文件`);
             return;
         }

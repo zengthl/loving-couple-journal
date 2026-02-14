@@ -37,15 +37,25 @@ function toDbTimelineEvent(event: Omit<TimelineEvent, 'id'>): Omit<DbTimelineEve
 export async function fetchTimelineEvents(): Promise<TimelineEvent[]> {
     const { data, error } = await supabase
         .from('timeline_events')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*');
 
     if (error) {
         console.error('Error fetching timeline events:', error);
         return [];
     }
 
-    return (data || []).map(toTimelineEvent);
+    // Sort by event date (year desc -> month desc -> date desc) instead of created_at
+    const events = (data || []).map(toTimelineEvent);
+    events.sort((a, b) => {
+        const yearDiff = parseInt(b.year) - parseInt(a.year);
+        if (yearDiff !== 0) return yearDiff;
+        const monthA = parseInt(a.month.replace('月', ''));
+        const monthB = parseInt(b.month.replace('月', ''));
+        const monthDiff = monthB - monthA;
+        if (monthDiff !== 0) return monthDiff;
+        return parseInt(b.date) - parseInt(a.date);
+    });
+    return events;
 }
 
 export async function createTimelineEvent(event: Omit<TimelineEvent, 'id'>, userId: string): Promise<TimelineEvent | null> {
@@ -95,21 +105,28 @@ export async function markProvinceVisited(
     userId: string,
     provinceId: string,
     visitDate: string,
-    photos: string[]
+    photos: string[],
+    city?: string
 ): Promise<void> {
-    // First, check if user already visited this province
-    const { data: existing } = await supabase
+    // First, check if user already visited this province with the same city
+    let query = supabase
         .from('user_province_visits')
         .select('*')
         .eq('user_id', userId)
-        .eq('province_id', provinceId)
-        .single();
+        .eq('province_id', provinceId);
+
+    if (city) {
+        query = query.eq('city', city);
+    }
+
+    const { data: existingRows } = await query;
+    const existing = existingRows && existingRows.length > 0 ? existingRows[0] : null;
 
     if (existing) {
         // Append new photos to existing ones
         const mergedPhotos = [...(existing.photos || []), ...photos];
 
-        const { error } = await supabase
+        let updateQuery = supabase
             .from('user_province_visits')
             .update({
                 visit_date: visitDate,
@@ -117,6 +134,12 @@ export async function markProvinceVisited(
             })
             .eq('user_id', userId)
             .eq('province_id', provinceId);
+
+        if (city) {
+            updateQuery = updateQuery.eq('city', city);
+        }
+
+        const { error } = await updateQuery;
 
         if (error) {
             console.error('Error updating province visit:', error);
@@ -129,7 +152,8 @@ export async function markProvinceVisited(
                 user_id: userId,
                 province_id: provinceId,
                 visit_date: visitDate,
-                photos: photos
+                photos: photos,
+                city: city || null
             }]);
 
         if (error) {
@@ -155,14 +179,27 @@ export async function fetchProvincesWithUserVisits(userId: string, baseProvinces
     }
 
     // Create a map of visits by province_id (merge photos from all users if guest)
-    const visitsMap = new Map<string, any>();
+    // Also build cityPhotos mapping: { cityName: [photo1, photo2, ...] }
+    const visitsMap = new Map<string, { photos: string[]; visit_date: string; cityPhotos: Record<string, string[]> }>();
     (visits || []).forEach(v => {
         const existing = visitsMap.get(v.province_id);
+        const cityName = v.city || '未分类';
         if (existing) {
-            // Merge photos from multiple users
+            // Merge photos
             existing.photos = [...(existing.photos || []), ...(v.photos || [])];
+            // Merge city photos
+            if (!existing.cityPhotos[cityName]) {
+                existing.cityPhotos[cityName] = [];
+            }
+            existing.cityPhotos[cityName] = [...existing.cityPhotos[cityName], ...(v.photos || [])];
         } else {
-            visitsMap.set(v.province_id, { ...v });
+            const cityPhotos: Record<string, string[]> = {};
+            cityPhotos[cityName] = [...(v.photos || [])];
+            visitsMap.set(v.province_id, {
+                photos: [...(v.photos || [])],
+                visit_date: v.visit_date,
+                cityPhotos
+            });
         }
     });
 
@@ -174,7 +211,8 @@ export async function fetchProvincesWithUserVisits(userId: string, baseProvinces
                 ...province,
                 visited: true,
                 date: visit.visit_date,
-                photos: visit.photos || []
+                photos: visit.photos || [],
+                cityPhotos: visit.cityPhotos
             };
         }
         return province;

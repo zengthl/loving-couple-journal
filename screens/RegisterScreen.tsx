@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Lock, User, ArrowRight, Loader, Check } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Loader, Check, Key } from 'lucide-react';
 import { signUp } from '../lib/auth';
 
 interface RegisterScreenProps {
@@ -11,13 +11,23 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegisterSucces
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [inviteCode, setInviteCode] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
 
+    // Invitation code - change this value to update the required code
+    const VALID_INVITE_CODE = '250323';
+
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+
+        // Validate invite code
+        if (inviteCode.trim() !== VALID_INVITE_CODE) {
+            setError('邀请码不正确，请联系管理员获取');
+            return;
+        }
 
         // Validate passwords match
         if (password !== confirmPassword) {
@@ -100,6 +110,22 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegisterSucces
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="your@email.com"
+                                    required
+                                    className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Invite Code Input */}
+                        <div>
+                            <label className="block text-sm font-bold text-text-sub mb-2">邀请码</label>
+                            <div className="relative">
+                                <Key className="absolute left-3 top-1/2 -translate-y-1/2 text-text-sub/50" size={20} />
+                                <input
+                                    type="text"
+                                    value={inviteCode}
+                                    onChange={(e) => setInviteCode(e.target.value)}
+                                    placeholder="请输入邀请码"
                                     required
                                     className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                                 />
