@@ -64,12 +64,8 @@ export function useProvinces(userId: string | undefined) {
         try {
             const baseProvinces = await fetchProvinces();
 
-            if (userId && userId !== GUEST_USER_ID) {
-                // Fetch user-specific visits and merge
-                const provincesWithVisits = await fetchProvincesWithUserVisits(userId, baseProvinces);
-                setProvinces(provincesWithVisits);
-            } else if (userId === GUEST_USER_ID) {
-                // Guest: fetch all visits from all users
+            if (userId) {
+                // Fetch ALL visits from ALL users (shared journal)
                 const provincesWithVisits = await fetchProvincesWithUserVisits('', baseProvinces);
                 setProvinces(provincesWithVisits);
             } else {
