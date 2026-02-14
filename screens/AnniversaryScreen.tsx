@@ -25,7 +25,7 @@ export const AnniversaryScreen: React.FC<AnniversaryScreenProps> = ({
   const [newImage, setNewImage] = useState('');
 
   // Default main anniversary (first one)
-  const mainAnniversary = anniversaries[0] || { title: '我们在一起', date: '2023-05-20' };
+  const mainAnniversary = anniversaries[0] || { title: '我们在一起', date: '2025-03-23' };
 
   // Calculate days together for main anniversary
   const calculateDays = (dateStr: string) => {
@@ -224,7 +224,7 @@ export const AnniversaryScreen: React.FC<AnniversaryScreenProps> = ({
               <div className="bg-white p-3 pb-8 rounded-lg shadow-card border border-stone-100">
                 <div className="w-full aspect-[4/3] bg-stone-200 rounded overflow-hidden relative">
                   <img
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwcOy2_u8jVSn76j0AnPYqba-6TPgpd_Q0mLl53i1qYIt515t9lVd-iIJh2NBcONTZIHFe7fS4jadYemuiCLeU0gDg_FaDe7QFM4XDBaC1FSksvVvoGOFUwLxZGYu5Vb_mlSxtsUy5ALvLoKc0_94ZtmpG8afuvaCio5dm5ShUtfm7z8m_f6_fvTvRfCD1SLzx8NZq5IyTEWmyl7EWyPFWShePHdk-Ll_NvFkAjVS26H8TXzUB8VHvBILQDeLBwRwJKzLYs4fVnU4"
+                    src="/assets/couple_cherry.jpg"
                     alt="Couple holding hands"
                     className="object-cover w-full h-full hover:scale-105 transition-transform duration-700"
                   />
@@ -242,7 +242,7 @@ export const AnniversaryScreen: React.FC<AnniversaryScreenProps> = ({
               <div className="bg-white p-3 pb-8 rounded-lg shadow-card border border-stone-100">
                 <div className="w-full aspect-[4/3] bg-stone-200 rounded overflow-hidden relative">
                   <img
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQv0ACv_fwdnVJnhjCNRoDnBLXC2QcWlcs_iKim3f8wp4Fasap1L2ZJDocnTe65hA6wDrmsYLTdqXfR10S1tiQiE4A-oRsPz3_2r3dw7TWsHmhf0X7mx89yRKZTXgPdW0-Y4QSpN7XSDANm83npx6NdNwOPqG5rVTi0wrILoPNNXi5xZNAPyKMoY_82l8qRH1EIZKmkqPQ9YOp5yZwMifuGYYpwbqSsiqJ1QPsHcX1G2aNWPecZHRhWC30ReJU-sTshJ0GFMOdGH8"
+                    src="/assets/heart_hands.jpg"
                     alt="Coffee moment"
                     className="object-cover w-full h-full hover:scale-105 transition-transform duration-700"
                   />
@@ -256,48 +256,7 @@ export const AnniversaryScreen: React.FC<AnniversaryScreenProps> = ({
           </div>
         </div>
 
-        {/* Location Card */}
-        <div className="w-full mt-4">
-          <div className="relative flex flex-col gap-0 rounded-2xl bg-white p-0 shadow-soft overflow-hidden border border-stone-50">
-            {/* Map Header */}
-            <div className="h-32 w-full relative bg-gray-100 overflow-hidden">
-              <img
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCEDZzI2HsQq-UXhBvuGEDWbrZj9-7LuzZJ70pJeHTnQ1W6of729Fxx2MVUg-dm0mOTDaqrGiqwaXqHz8D5pi2u7L_857qhkSZRzm94rXTIKcTwaxFO_e1YXhEvNcIS73RvAXY9KQFfiAo6BPUjTFQ_IlUPoI8IDZPsdTxRxaICJTbQDuCDezJDNFqfBbrMaU01oFALLGOnen8XsHHUJShTTxEnZg51TxSBj-dECpkEi2OjcbIdxR703rG27JS2F5Z0imODXzSTtdk"
-                alt="Abstract Map"
-                className="w-full h-full object-cover opacity-80"
-              />
-              <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/30"></div>
-              <div className="absolute bottom-3 left-3 flex items-center gap-1 text-white drop-shadow-md">
-                <MapPin size={16} className="text-primary fill-primary" />
-                <span className="text-sm font-bold tracking-wide">SHANGHAI</span>
-              </div>
-            </div>
 
-            {/* Details */}
-            <div className="p-5 flex flex-col gap-4">
-              <div className="flex items-start justify-between">
-                <div className="flex flex-col gap-1">
-                  <h3 className="text-text-main text-lg font-bold leading-tight">迪士尼乐园</h3>
-                  <div className="flex items-center gap-1.5 text-text-sub text-sm">
-                    <Clock size={14} />
-                    <span>打卡时间：14:00</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-center h-10 w-10 rounded-full bg-primary/10 text-primary">
-                  <MapPin size={20} />
-                </div>
-              </div>
-
-              <button
-                onClick={onNavigateToMap}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary hover:bg-primary/90 text-white h-12 text-sm font-bold shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
-              >
-                <MapIcon size={18} />
-                查看足迹地图
-              </button>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
