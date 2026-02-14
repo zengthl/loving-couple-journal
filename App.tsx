@@ -60,15 +60,38 @@ const FALLBACK_PROVINCES: Province[] = [
 export default function App() {
   const [activeScreen, setActiveScreen] = useState<ScreenName>(ScreenName.TIMELINE);
   const [authView, setAuthView] = useState<'login' | 'register'>('login');
+  const [isGuest, setIsGuest] = useState(false);
+  const [guestToast, setGuestToast] = useState(false);
 
   // Auth state
-  const { user, loading: authLoading, isAuthenticated } = useAuth();
+  const { user: authUser, loading: authLoading, isAuthenticated: isRealAuth } = useAuth();
 
-  // Supabase hooks - pass user.id to all hooks
-  const { events: timelineEvents, loading: timelineLoading, addEvent, reload: reloadTimeline } = useTimelineEvents(user?.id);
-  const { provinces: dbProvinces, loading: provincesLoading, reload: reloadProvinces, markVisited } = useProvinces(user?.id);
-  const { items: discoveryItems, loading: discoveryLoading, addItem } = useDiscoveryItems(user?.id);
-  const { anniversaries, loading: anniversariesLoading, addAnniversary } = useAnniversaries(user?.id);
+  // For guest mode: use a special constant ID to read the owner's data
+  const GUEST_USER_ID = 'guest-visitor';
+  const effectiveUserId = isGuest ? GUEST_USER_ID : authUser?.id;
+  const isAuthenticated = isRealAuth || isGuest;
+  const user = isGuest ? { id: GUEST_USER_ID, email: '访客模式' } : authUser;
+
+  // Show guest toast
+  const showGuestToast = () => {
+    setGuestToast(true);
+    setTimeout(() => setGuestToast(false), 2000);
+  };
+
+  // Block write actions for guest
+  const guestGuard = (action: () => any) => {
+    if (isGuest) {
+      showGuestToast();
+      return;
+    }
+    action();
+  };
+
+  // Supabase hooks - guest mode fetches ALL data (no user filter), normal mode filters by user
+  const { events: timelineEvents, loading: timelineLoading, addEvent, reload: reloadTimeline } = useTimelineEvents(effectiveUserId);
+  const { provinces: dbProvinces, loading: provincesLoading, reload: reloadProvinces, markVisited } = useProvinces(effectiveUserId);
+  const { items: discoveryItems, loading: discoveryLoading, addItem } = useDiscoveryItems(effectiveUserId);
+  const { anniversaries, loading: anniversariesLoading, addAnniversary } = useAnniversaries(effectiveUserId);
 
   // Handle delete/update timeline event
   const handleDeleteTimelineEvent = async (id: string) => {
@@ -102,8 +125,18 @@ export default function App() {
 
   // Handle logout
   const handleLogout = async () => {
+    if (isGuest) {
+      setIsGuest(false);
+      return;
+    }
     await signOut();
     window.location.reload();
+  };
+
+  // Handle guest login
+  const handleGuestLogin = () => {
+    setIsGuest(true);
+    setActiveScreen(ScreenName.TIMELINE);
   };
 
   // Handle publishing new item (Food, Goods, Shop, Fun)
@@ -195,7 +228,7 @@ export default function App() {
       if (authView === 'register') {
         return <RegisterScreen onRegisterSuccess={() => setAuthView('login')} onSwitchToLogin={() => setAuthView('login')} />;
       }
-      return <LoginScreen onLoginSuccess={() => { }} onSwitchToRegister={() => setAuthView('register')} />;
+      return <LoginScreen onLoginSuccess={() => { }} onSwitchToRegister={() => setAuthView('register')} onGuestLogin={handleGuestLogin} />;
     }
 
     switch (activeScreen) {
@@ -205,10 +238,11 @@ export default function App() {
         return (
           <TimelineScreen
             events={timelineEvents}
-            onAddClick={() => setActiveScreen(ScreenName.UPLOAD)}
-            onDeleteEvent={handleDeleteTimelineEvent}
-            onUpdateEvent={handleUpdateTimelineEvent}
+            onAddClick={() => guestGuard(() => setActiveScreen(ScreenName.UPLOAD))}
+            onDeleteEvent={async (id) => { if (isGuest) { showGuestToast(); return; } await handleDeleteTimelineEvent(id); }}
+            onUpdateEvent={async (id, data) => { if (isGuest) { showGuestToast(); return; } await handleUpdateTimelineEvent(id, data); }}
             onDeleteImageSync={handleSyncDeleteFromTimeline}
+            isGuest={isGuest}
           />
         );
       case ScreenName.ANNIVERSARY:
@@ -225,8 +259,9 @@ export default function App() {
         return (
           <MapScreen
             provinces={provinces}
-            onNavigateToUpload={() => setActiveScreen(ScreenName.UPLOAD)}
+            onNavigateToUpload={() => guestGuard(() => setActiveScreen(ScreenName.UPLOAD))}
             onNavigateToAlbums={() => setActiveScreen(ScreenName.ALBUM_LIST)}
+            isGuest={isGuest}
           />
         );
       case ScreenName.PUBLISH:
@@ -253,30 +288,49 @@ export default function App() {
             onBack={() => setActiveScreen(ScreenName.MAP)}
             userId={user!.id}
             onRefresh={reloadProvinces}
-            onDeletePhoto={handleSyncDeleteFromAlbum}
+            onDeletePhoto={isGuest ? async () => { showGuestToast(); } : handleSyncDeleteFromAlbum}
+            isGuest={isGuest}
           />
         );
       default:
         return (
           <TimelineScreen
             events={timelineEvents}
-            onAddClick={() => setActiveScreen(ScreenName.UPLOAD)}
-            onDeleteEvent={handleDeleteTimelineEvent}
-            onUpdateEvent={handleUpdateTimelineEvent}
+            onAddClick={() => guestGuard(() => setActiveScreen(ScreenName.UPLOAD))}
+            onDeleteEvent={async (id) => { if (isGuest) { showGuestToast(); return; } await handleDeleteTimelineEvent(id); }}
+            onUpdateEvent={async (id, data) => { if (isGuest) { showGuestToast(); return; } await handleUpdateTimelineEvent(id, data); }}
             onDeleteImageSync={handleSyncDeleteFromTimeline}
+            isGuest={isGuest}
           />
         );
     }
   };
 
   return (
-    <Layout
-      activeScreen={activeScreen}
-      onNavigate={setActiveScreen}
-      user={user}
-      onLogout={handleLogout}
-    >
-      {renderScreen()}
-    </Layout>
+    <>
+      <Layout
+        activeScreen={activeScreen}
+        onNavigate={(screen) => {
+          // Block navigation to write-only screens for guests
+          if (isGuest && (screen === ScreenName.PUBLISH || screen === ScreenName.UPLOAD)) {
+            showGuestToast();
+            return;
+          }
+          setActiveScreen(screen);
+        }}
+        user={user}
+        onLogout={handleLogout}
+        isGuest={isGuest}
+      >
+        {renderScreen()}
+      </Layout>
+
+      {/* Guest Toast */}
+      {guestToast && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[999] bg-black/80 text-white text-sm px-5 py-2.5 rounded-full shadow-lg animate-fade-in backdrop-blur-sm">
+          🔒 访客模式下无法操作
+        </div>
+      )}
+    </>
   );
 }

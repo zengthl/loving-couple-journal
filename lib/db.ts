@@ -140,20 +140,31 @@ export async function markProvinceVisited(
 
 // Fetch user's province visits and merge with base province data
 export async function fetchProvincesWithUserVisits(userId: string, baseProvinces: Province[]): Promise<Province[]> {
-    const { data: visits, error } = await supabase
-        .from('user_province_visits')
-        .select('*')
-        .eq('user_id', userId);
+    let query = supabase.from('user_province_visits').select('*');
+
+    // If userId is provided and not empty, filter by user; otherwise fetch all (guest mode)
+    if (userId) {
+        query = query.eq('user_id', userId);
+    }
+
+    const { data: visits, error } = await query;
 
     if (error) {
         console.error('Error fetching user province visits:', error);
         return baseProvinces;
     }
 
-    // Create a map of visits by province_id
-    const visitsMap = new Map(
-        (visits || []).map(v => [v.province_id, v])
-    );
+    // Create a map of visits by province_id (merge photos from all users if guest)
+    const visitsMap = new Map<string, any>();
+    (visits || []).forEach(v => {
+        const existing = visitsMap.get(v.province_id);
+        if (existing) {
+            // Merge photos from multiple users
+            existing.photos = [...(existing.photos || []), ...(v.photos || [])];
+        } else {
+            visitsMap.set(v.province_id, { ...v });
+        }
+    });
 
     // Merge visits with base provinces
     return baseProvinces.map(province => {
@@ -212,6 +223,21 @@ export async function fetchDiscoveryItems(userId: string): Promise<DiscoveryItem
     return (data || []).map(toDiscoveryItem);
 }
 
+// Fetch ALL discovery items (guest mode - no user filter)
+export async function fetchAllDiscoveryItems(): Promise<DiscoveryItem[]> {
+    const { data, error } = await supabase
+        .from('discovery_items')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching all discovery items:', error);
+        return [];
+    }
+
+    return (data || []).map(toDiscoveryItem);
+}
+
 export async function createDiscoveryItem(item: Omit<DiscoveryItem, 'id'>, userId: string): Promise<DiscoveryItem | null> {
     const { data, error } = await supabase
         .from('discovery_items')
@@ -257,6 +283,21 @@ export async function fetchAnniversaries(userId: string): Promise<Anniversary[]>
 
     if (error) {
         console.error('Error fetching anniversaries:', error);
+        return [];
+    }
+
+    return (data || []).map(toAnniversary);
+}
+
+// Fetch ALL anniversaries (guest mode - no user filter)
+export async function fetchAllAnniversaries(): Promise<Anniversary[]> {
+    const { data, error } = await supabase
+        .from('anniversaries')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+    if (error) {
+        console.error('Error fetching all anniversaries:', error);
         return [];
     }
 

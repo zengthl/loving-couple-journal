@@ -7,10 +7,14 @@ import {
     fetchProvincesWithUserVisits,
     markProvinceVisited,
     fetchDiscoveryItems,
+    fetchAllDiscoveryItems,
     createDiscoveryItem,
     fetchAnniversaries,
+    fetchAllAnniversaries,
     createAnniversary
 } from './db';
+
+const GUEST_USER_ID = 'guest-visitor';
 
 // ==================== useTimelineEvents ====================
 export function useTimelineEvents(userId: string | undefined) {
@@ -42,7 +46,7 @@ export function useTimelineEvents(userId: string | undefined) {
     }, [load]);
 
     const addEvent = useCallback(async (event: Omit<TimelineEvent, 'id'>) => {
-        if (!userId) return null;
+        if (!userId || userId === GUEST_USER_ID) return null;
 
         const created = await createTimelineEvent(event, userId);
         if (created) {
@@ -66,9 +70,13 @@ export function useProvinces(userId: string | undefined) {
         try {
             const baseProvinces = await fetchProvinces();
 
-            if (userId) {
+            if (userId && userId !== GUEST_USER_ID) {
                 // Fetch user-specific visits and merge
                 const provincesWithVisits = await fetchProvincesWithUserVisits(userId, baseProvinces);
+                setProvinces(provincesWithVisits);
+            } else if (userId === GUEST_USER_ID) {
+                // Guest: fetch all visits from all users
+                const provincesWithVisits = await fetchProvincesWithUserVisits('', baseProvinces);
                 setProvinces(provincesWithVisits);
             } else {
                 setProvinces(baseProvinces);
@@ -91,10 +99,9 @@ export function useProvinces(userId: string | undefined) {
         visitDate: string,
         photos: string[]
     ) => {
-        if (!userId) return;
+        if (!userId || userId === GUEST_USER_ID) return;
 
         await markProvinceVisited(userId, provinceId, visitDate, photos);
-        // Reload to get updated data
         await load();
     }, [userId, load]);
 
@@ -116,7 +123,9 @@ export function useDiscoveryItems(userId: string | undefined) {
 
         setLoading(true);
         try {
-            const data = await fetchDiscoveryItems(userId);
+            const data = userId === GUEST_USER_ID
+                ? await fetchAllDiscoveryItems()
+                : await fetchDiscoveryItems(userId);
             setItems(data);
             setError(null);
         } catch (err) {
@@ -131,7 +140,7 @@ export function useDiscoveryItems(userId: string | undefined) {
     }, [load]);
 
     const addItem = useCallback(async (item: Omit<DiscoveryItem, 'id'>) => {
-        if (!userId) return null;
+        if (!userId || userId === GUEST_USER_ID) return null;
 
         const created = await createDiscoveryItem(item, userId);
         if (created) {
@@ -159,7 +168,9 @@ export function useAnniversaries(userId: string | undefined) {
 
         setLoading(true);
         try {
-            const data = await fetchAnniversaries(userId);
+            const data = userId === GUEST_USER_ID
+                ? await fetchAllAnniversaries()
+                : await fetchAnniversaries(userId);
             setAnniversaries(data);
             setError(null);
         } catch (err) {
@@ -174,7 +185,7 @@ export function useAnniversaries(userId: string | undefined) {
     }, [load]);
 
     const addAnniversary = useCallback(async (ann: Omit<Anniversary, 'id'>) => {
-        if (!userId) return null;
+        if (!userId || userId === GUEST_USER_ID) return null;
 
         const created = await createAnniversary(ann, userId);
         if (created) {

@@ -9,6 +9,7 @@ interface TimelineScreenProps {
   onDeleteEvent: (id: string) => Promise<void>;
   onUpdateEvent: (id: string, data: Partial<TimelineEvent>) => Promise<void>;
   onDeleteImageSync?: (imageUrl: string) => Promise<void>;
+  isGuest?: boolean;
 }
 
 const isVideoUrl = (url: string): boolean => {
@@ -22,7 +23,8 @@ export const TimelineScreen: React.FC<TimelineScreenProps> = ({
   onAddClick,
   onDeleteEvent,
   onUpdateEvent,
-  onDeleteImageSync
+  onDeleteImageSync,
+  isGuest
 }) => {
   const [viewingEvent, setViewingEvent] = useState<TimelineEvent | null>(null);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);

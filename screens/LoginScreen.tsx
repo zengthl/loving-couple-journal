@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { Mail, Lock, ArrowRight, Loader } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Loader, Eye } from 'lucide-react';
 import { signIn } from '../lib/auth';
 
 interface LoginScreenProps {
     onLoginSuccess: () => void;
     onSwitchToRegister: () => void;
+    onGuestLogin: () => void;
 }
 
-export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onSwitchToRegister }) => {
+export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onSwitchToRegister, onGuestLogin }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -118,6 +119,23 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onSwit
                                 立即注册
                             </button>
                         </p>
+                    </div>
+
+                    {/* Guest Mode */}
+                    <div className="mt-4">
+                        <div className="relative flex items-center justify-center my-3">
+                            <div className="border-t border-gray-200 w-full"></div>
+                            <span className="bg-transparent px-3 text-xs text-text-sub/60 whitespace-nowrap" style={{ background: 'linear-gradient(135deg, rgba(var(--color-primary-rgb, 255,107,129), 0.02), rgba(255,255,255,0.8), rgba(255,182,193, 0.05))' }}>或者</span>
+                            <div className="border-t border-gray-200 w-full"></div>
+                        </div>
+                        <button
+                            onClick={onGuestLogin}
+                            className="w-full border-2 border-gray-200 hover:border-primary/30 text-text-sub hover:text-primary font-medium py-3 rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                        >
+                            <Eye size={18} />
+                            访客模式浏览
+                        </button>
+                        <p className="text-center text-xs text-text-sub/50 mt-2">仅可浏览，无法编辑内容</p>
                     </div>
                 </div>
             </div>

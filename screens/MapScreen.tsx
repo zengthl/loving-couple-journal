@@ -8,6 +8,7 @@ interface MapScreenProps {
   provinces: Province[];
   onNavigateToUpload: () => void;
   onNavigateToAlbums: () => void;
+  isGuest?: boolean;
 }
 
 // 省份名称到ID的映射
@@ -48,7 +49,7 @@ const provinceNameToId: Record<string, string> = {
   '澳门特别行政区': 'macau', '澳门': 'macau',
 };
 
-export const MapScreen: React.FC<MapScreenProps> = ({ provinces, onNavigateToUpload, onNavigateToAlbums }) => {
+export const MapScreen: React.FC<MapScreenProps> = ({ provinces, onNavigateToUpload, onNavigateToAlbums, isGuest }) => {
   const [selectedProvince, setSelectedProvince] = useState<Province | null>(null);
   const [showMenu, setShowMenu] = useState(false);
   const chartRef = useRef<HTMLDivElement>(null);

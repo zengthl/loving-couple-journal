@@ -10,9 +10,10 @@ interface LayoutProps {
   onNavigate: (screen: ScreenName) => void;
   user?: AuthUser | null;
   onLogout?: () => void;
+  isGuest?: boolean;
 }
 
-export const Layout: React.FC<LayoutProps> = ({ children, activeScreen, onNavigate, user, onLogout }) => {
+export const Layout: React.FC<LayoutProps> = ({ children, activeScreen, onNavigate, user, onLogout, isGuest }) => {
   // Hide bottom nav for detail screens and auth screens
   const showBottomNav = user && [ScreenName.DISCOVERY, ScreenName.TIMELINE, ScreenName.MAP, ScreenName.PROFILE].includes(activeScreen);
   const showUserInfo = user && showBottomNav;
@@ -24,9 +25,13 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeScreen, onNaviga
         <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100 px-4 py-2 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-              <span className="text-sm">❤️</span>
+              <span className="text-sm">{isGuest ? '👁️' : '❤️'}</span>
             </div>
-            <span className="text-sm font-medium text-text-sub truncate max-w-[200px]">{user?.email}</span>
+            {isGuest ? (
+              <span className="text-sm font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">访客模式</span>
+            ) : (
+              <span className="text-sm font-medium text-text-sub truncate max-w-[200px]">{user?.email}</span>
+            )}
           </div>
           {onLogout && (
             <button
@@ -34,7 +39,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeScreen, onNaviga
               className="flex items-center gap-1 text-xs font-medium text-text-sub hover:text-primary transition-colors px-2 py-1 rounded-lg hover:bg-gray-50"
             >
               <LogOut size={14} />
-              退出
+              {isGuest ? '退出浏览' : '退出'}
             </button>
           )}
         </div>
@@ -65,8 +70,11 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeScreen, onNaviga
           {/* Floating Action Button - Center */}
           <div className="relative -top-5">
             <button
-              onClick={() => onNavigate(ScreenName.PUBLISH)} // Go to Publish (Food/Goods/Shop/Fun)
-              className="h-14 w-14 rounded-full bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/40 transform transition-transform active:scale-95 hover:scale-105"
+              onClick={() => onNavigate(ScreenName.PUBLISH)}
+              className={`h-14 w-14 rounded-full flex items-center justify-center shadow-lg transform transition-transform active:scale-95 hover:scale-105 ${isGuest
+                  ? 'bg-gray-300 text-gray-500 shadow-gray-200/40 cursor-not-allowed'
+                  : 'bg-primary text-white shadow-primary/40'
+                }`}
             >
               <Plus className="w-8 h-8" strokeWidth={3} />
             </button>

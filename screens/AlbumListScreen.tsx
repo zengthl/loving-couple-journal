@@ -10,6 +10,7 @@ interface AlbumListScreenProps {
   userId: string;
   onRefresh: () => void;
   onDeletePhoto?: (photoUrl: string) => Promise<void>;
+  isGuest?: boolean;
 }
 
 // Helper to check if URL is a video
@@ -354,8 +355,8 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({ provinces, onB
               onClick={handleBatchDownload}
               disabled={selectedPhotos.size === 0 || isDownloading}
               className={`flex items-center gap-1 text-sm font-bold px-3 py-1 rounded-full ${selectedPhotos.size > 0 && !isDownloading
-                  ? 'bg-primary text-white'
-                  : 'bg-gray-200 text-gray-400'
+                ? 'bg-primary text-white'
+                : 'bg-gray-200 text-gray-400'
                 }`}
             >
               <Download size={14} />
