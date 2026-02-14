@@ -442,45 +442,43 @@ export async function updateDiscoveryItem(id: string, updates: Partial<Omit<Disc
 // ==================== Province Photo Updates ====================
 
 export async function deleteProvincePhoto(userId: string, provinceId: string, photoUrl: string): Promise<boolean> {
-    // 1. Get current photos
-    const { data: currentVisit, error: fetchError } = await supabase
+    // 1. Get all visit rows for this province (could be multiple cities)
+    const { data: visits, error: fetchError } = await supabase
         .from('user_province_visits')
-        .select('photos')
+        .select('id, photos, city')
         .eq('user_id', userId)
         .eq('province_id', provinceId)
-        .single();
+        .contains('photos', [photoUrl]);
 
-    if (fetchError || !currentVisit) {
+    if (fetchError || !visits || visits.length === 0) {
         console.error('Error fetching province visit:', fetchError);
         return false;
     }
 
-    // 2. Filter out the photo
-    const newPhotos = (currentVisit.photos || []).filter((p: string) => p !== photoUrl);
+    // 2. Update/delete the row that contains this photo
+    for (const visit of visits) {
+        const newPhotos = (visit.photos || []).filter((p: string) => p !== photoUrl);
 
-    // 3. If no photos left, delete the entire visit record (unvisit the province)
-    if (newPhotos.length === 0) {
-        const { error: deleteError } = await supabase
-            .from('user_province_visits')
-            .delete()
-            .eq('user_id', userId)
-            .eq('province_id', provinceId);
+        if (newPhotos.length === 0) {
+            const { error: deleteError } = await supabase
+                .from('user_province_visits')
+                .delete()
+                .eq('id', visit.id);
 
-        if (deleteError) {
-            console.error('Error deleting province visit:', deleteError);
-            return false;
-        }
-    } else {
-        // 4. Otherwise just update the photos array
-        const { error: updateError } = await supabase
-            .from('user_province_visits')
-            .update({ photos: newPhotos })
-            .eq('user_id', userId)
-            .eq('province_id', provinceId);
+            if (deleteError) {
+                console.error('Error deleting province visit:', deleteError);
+                return false;
+            }
+        } else {
+            const { error: updateError } = await supabase
+                .from('user_province_visits')
+                .update({ photos: newPhotos })
+                .eq('id', visit.id);
 
-        if (updateError) {
-            console.error('Error updating province photos:', updateError);
-            return false;
+            if (updateError) {
+                console.error('Error updating province photos:', updateError);
+                return false;
+            }
         }
     }
 
@@ -490,7 +488,7 @@ export async function deleteProvincePhoto(userId: string, provinceId: string, ph
 export async function removePhotoFromUserProvinces(userId: string, photoUrl: string): Promise<boolean> {
     const { data: visits, error } = await supabase
         .from('user_province_visits')
-        .select('province_id, photos')
+        .select('id, province_id, photos')
         .eq('user_id', userId)
         .contains('photos', [photoUrl]);
 
@@ -509,8 +507,7 @@ export async function removePhotoFromUserProvinces(userId: string, photoUrl: str
             const { error: deleteError } = await supabase
                 .from('user_province_visits')
                 .delete()
-                .eq('user_id', userId)
-                .eq('province_id', visit.province_id);
+                .eq('id', visit.id);
 
             if (deleteError) {
                 console.error('Error deleting empty province visit:', deleteError);
@@ -520,8 +517,7 @@ export async function removePhotoFromUserProvinces(userId: string, photoUrl: str
             const { error: updateError } = await supabase
                 .from('user_province_visits')
                 .update({ photos: nextPhotos })
-                .eq('user_id', userId)
-                .eq('province_id', visit.province_id);
+                .eq('id', visit.id);
 
             if (updateError) {
                 console.error('Error updating province photos:', updateError);
