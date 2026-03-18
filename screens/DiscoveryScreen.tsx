@@ -75,6 +75,8 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({ items }) => {
                     <img
                       src={card.image}
                       alt={card.title}
+                      loading="lazy"
+                      decoding="async"
                       className="h-full w-full object-cover transition-transform duration-700 group-hover/card:scale-105"
                     />
                     {card.topBadge && (

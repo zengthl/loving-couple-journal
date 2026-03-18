@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh auth:*)",
+      "mcp__github__get_file_contents",
+      "Bash(git config:*)",
+      "WebFetch(domain:www.zthldyq.top)",
+      "mcp__supabase__list_tables",
+      "Bash(xargs wc:*)",
+      "mcp__supabase__get_advisors",
+      "Bash(npm install:*)",
+      "Bash(ls -la \"D:/loving app/loving---couple-journal/\"*.css)",
+      "Bash(npm run:*)",
+      "mcp__supabase__execute_sql",
+      "Bash(git add:*)"
+    ]
+  }
+}

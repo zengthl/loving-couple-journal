@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+/* Custom theme configuration */
+@theme {
+  --color-primary: #f5a6a3;
+  --color-primary-dark: #e08e8b;
+  --color-primary-light: #ffcfcc;
+  --color-background-light: #fffcf9;
+  --color-background-dark: #211111;
+  --color-surface-light: #ffffff;
+  --color-surface-dark: #2d1b1b;
+  --color-text-main: #4a3b3b;
+  --color-text-sub: #8c7a7a;
+  --color-accent: #ee8c2b;
+
+  --font-family-sans: "Plus Jakarta Sans", "Noto Sans SC", sans-serif;
+  --font-family-display: "Noto Sans SC", sans-serif;
+
+  --shadow-soft: 0 10px 40px -10px rgba(245, 166, 163, 0.15);
+  --shadow-card: 0 4px 20px -5px rgba(0, 0, 0, 0.03);
+  --shadow-floating: 0 20px 50px -12px rgba(245, 166, 163, 0.25);
+
+  --animate-fade-in: fadeIn 0.5s ease-out;
+  --animate-slide-up: slideUp 0.5s ease-out;
+  --animate-float: float 3s ease-in-out infinite;
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes slideUp {
+  0% { transform: translateY(20px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+/* Base styles */
+body {
+  background-color: #fffcf9;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Hide scrollbar for clean UI */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Map Filter for aesthetic integration */
+.custom-map-filter .leaflet-tile-pane {
+  filter: sepia(0.1) saturation(0.8) hue-rotate(-10deg) contrast(0.95) brightness(1.02);
+}
+
+/* Remove default leaflet attribution for clean demo */
+.leaflet-control-attribution {
+  display: none !important;
+}

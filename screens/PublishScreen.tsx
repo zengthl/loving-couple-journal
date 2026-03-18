@@ -143,7 +143,7 @@ export const PublishScreen: React.FC<PublishScreenProps> = ({ onBack, onPublish,
 
                         {previews.map((preview, idx) => (
                             <div key={idx} className="relative flex-shrink-0 w-24 h-24 rounded-2xl overflow-hidden shadow-sm border border-gray-100 group">
-                                <img src={preview} alt="Upload" className="w-full h-full object-cover" />
+                                <img src={preview} alt="Upload" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                                 <button
                                     onClick={() => removeImage(idx)}
                                     className="absolute top-1 right-1 w-5 h-5 bg-black/50 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"

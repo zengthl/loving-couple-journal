@@ -1,8 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import * as echarts from 'echarts';
 import { Menu, X, Upload, BookOpen, Image as ImageIcon, Calendar, Navigation } from 'lucide-react';
 import { Province } from '../types';
-import chinaGeoJSON from '../data/china.json';
 
 interface MapScreenProps {
   provinces: Province[];
@@ -52,8 +50,9 @@ const provinceNameToId: Record<string, string> = {
 export const MapScreen: React.FC<MapScreenProps> = ({ provinces, onNavigateToUpload, onNavigateToAlbums, isGuest }) => {
   const [selectedProvince, setSelectedProvince] = useState<Province | null>(null);
   const [showMenu, setShowMenu] = useState(false);
+  const [geoData, setGeoData] = useState<any>(null);
   const chartRef = useRef<HTMLDivElement>(null);
-  const chartInstance = useRef<echarts.ECharts | null>(null);
+  const chartInstanceRef = useRef<any>(null);
 
   const totalProvinces = 34;
   const visitedCount = provinces.filter(p => p.visited).length;
@@ -68,14 +67,22 @@ export const MapScreen: React.FC<MapScreenProps> = ({ provinces, onNavigateToUpl
     return 1;
   };
 
+  // Dynamically load GeoJSON
+  useEffect(() => {
+    import('../data/china.json').then(module => {
+      setGeoData(module.default);
+    });
+  }, []);
+
   // 创建地图数据
   const getMapData = () => {
+    if (!geoData) return [];
     const visitedProvinceIds = new Set(
       provinces.filter(p => p.visited).map(p => p.id)
     );
 
     // 从GeoJSON获取所有省份名称
-    const features = (chinaGeoJSON as any).features || [];
+    const features = geoData.features || [];
     return features.map((feature: any) => {
       const name = feature.properties?.name || '';
       const provinceId = provinceNameToId[name] || provinceNameToId[name.replace(/省|市|自治区|特别行政区|壮族|回族|维吾尔/g, '')];
@@ -103,15 +110,21 @@ export const MapScreen: React.FC<MapScreenProps> = ({ provinces, onNavigateToUpl
 
 
   useEffect(() => {
-    if (!chartRef.current) return;
+    if (!chartRef.current || !geoData) return;
 
-    // 注册地图
-    echarts.registerMap('china', chinaGeoJSON as any);
+    let disposed = false;
 
-    // 初始化图表
-    chartInstance.current = echarts.init(chartRef.current);
+    const initChart = async () => {
+      const echarts = await import('echarts');
+      if (disposed || !chartRef.current) return;
 
-    const option: echarts.EChartsOption = {
+      // 注册地图
+      echarts.registerMap('china', geoData);
+
+      // 初始化图表
+      chartInstanceRef.current = echarts.init(chartRef.current);
+
+      const option: any = {
       backgroundColor: '#fbf8f3',
       series: [{
         type: 'map',
@@ -139,43 +152,35 @@ export const MapScreen: React.FC<MapScreenProps> = ({ provinces, onNavigateToUpl
     };
 
 
-    chartInstance.current.setOption(option);
+      chartInstanceRef.current.setOption(option);
 
-    // 点击事件
-    chartInstance.current.on('click', (params: any) => {
-      if (params.componentType === 'geo' || params.componentType === 'series') {
-        const provinceName = params.name;
-        const provinceId = provinceNameToId[provinceName] || provinceNameToId[provinceName?.replace(/省|市|自治区|特别行政区|壮族|回族|维吾尔/g, '')];
-        const province = provinces.find(p => p.id === provinceId);
+      // 点击事件
+      chartInstanceRef.current.on('click', (params: any) => {
+        if (params.componentType === 'geo' || params.componentType === 'series') {
+          const provinceName = params.name;
+          const provinceId = provinceNameToId[provinceName] || provinceNameToId[provinceName?.replace(/省|市|自治区|特别行政区|壮族|回族|维吾尔/g, '')];
+          const province = provinces.find(p => p.id === provinceId);
 
-        if (province?.visited) {
-          setSelectedProvince(province);
+          if (province?.visited) {
+            setSelectedProvince(province);
+          }
         }
-      }
-    });
-
-    // 响应窗口大小变化
-    const handleResize = () => {
-      chartInstance.current?.resize();
-    };
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      chartInstance.current?.dispose();
-    };
-  }, []);
-
-  // 更新地图数据
-  useEffect(() => {
-    if (chartInstance.current) {
-      chartInstance.current.setOption({
-        series: [{
-          data: getMapData()
-        }]
       });
-    }
-  }, [provinces]);
+
+      // 响应窗口大小变化
+      const handleResize = () => {
+        chartInstanceRef.current?.resize();
+      };
+      window.addEventListener('resize', handleResize);
+
+      return () => {
+        window.removeEventListener('resize', handleResize);
+        chartInstanceRef.current?.dispose();
+      };
+    };
+
+    initChart();
+  }, [geoData]);
 
   return (
     <div className="relative flex flex-col overflow-hidden bg-[#fbf8f3]" style={{ height: '100vh', width: '100%' }}>
@@ -290,6 +295,8 @@ export const MapScreen: React.FC<MapScreenProps> = ({ provinces, onNavigateToUpl
                 <img
                   src={selectedProvince.photos[0]}
                   alt="Cover"
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-background-light via-transparent to-black/20"></div>
@@ -332,6 +339,8 @@ export const MapScreen: React.FC<MapScreenProps> = ({ provinces, onNavigateToUpl
                     <img
                       src={photo}
                       alt={`Trip ${idx}`}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full object-cover transform transition-transform duration-700 group-hover:scale-110"
                     />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors"></div>

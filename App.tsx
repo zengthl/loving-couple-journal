@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { Layout } from './components/Layout';
-import { DiscoveryScreen } from './screens/DiscoveryScreen';
-import { TimelineScreen } from './screens/TimelineScreen';
-import { AnniversaryScreen } from './screens/AnniversaryScreen';
-import { MapScreen } from './screens/MapScreen';
-import { PublishScreen } from './screens/PublishScreen';
-import { UploadScreen } from './screens/UploadScreen';
-import { AlbumListScreen } from './screens/AlbumListScreen';
-import { LoginScreen } from './screens/LoginScreen';
-import { RegisterScreen } from './screens/RegisterScreen';
 import { ScreenName, TimelineEvent, Province, DiscoveryItem, Anniversary } from './types';
+
+// Lazy load screens for code splitting
+const DiscoveryScreen = lazy(() => import('./screens/DiscoveryScreen').then(m => ({ default: m.DiscoveryScreen })));
+const TimelineScreen = lazy(() => import('./screens/TimelineScreen').then(m => ({ default: m.TimelineScreen })));
+const AnniversaryScreen = lazy(() => import('./screens/AnniversaryScreen').then(m => ({ default: m.AnniversaryScreen })));
+const MapScreen = lazy(() => import('./screens/MapScreen').then(m => ({ default: m.MapScreen })));
+const PublishScreen = lazy(() => import('./screens/PublishScreen').then(m => ({ default: m.PublishScreen })));
+const UploadScreen = lazy(() => import('./screens/UploadScreen').then(m => ({ default: m.UploadScreen })));
+const AlbumListScreen = lazy(() => import('./screens/AlbumListScreen').then(m => ({ default: m.AlbumListScreen })));
+const LoginScreen = lazy(() => import('./screens/LoginScreen').then(m => ({ default: m.LoginScreen })));
+const RegisterScreen = lazy(() => import('./screens/RegisterScreen').then(m => ({ default: m.RegisterScreen })));
 import { deleteTimelineEvent, removeImageFromTimelineEvents, removePhotoFromUserProvinces, updateTimelineEvent } from './lib/db';
 import { useTimelineEvents, useProvinces, useDiscoveryItems, useAnniversaries } from './lib/hooks';
 import { useAuth } from './lib/useAuth';
@@ -212,96 +214,124 @@ export default function App() {
     await addEvent(newEvent);
   };
 
+  const PageLoader = () => (
+    <div className="flex flex-col h-full items-center justify-center bg-background-light">
+      <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent mb-4"></div>
+      <p className="text-text-sub text-sm">加载中...</p>
+    </div>
+  );
+
   const renderScreen = () => {
     // Show loading screen
     if (isLoading) {
-      return (
-        <div className="flex flex-col h-full items-center justify-center bg-background-light">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent mb-4"></div>
-          <p className="text-text-sub text-sm">加载中...</p>
-        </div>
-      );
+      return <PageLoader />;
     }
 
     // Show auth screens if not authenticated
     if (!isAuthenticated) {
       if (authView === 'register') {
-        return <RegisterScreen onRegisterSuccess={() => setAuthView('login')} onSwitchToLogin={() => setAuthView('login')} />;
+        return (
+          <Suspense fallback={<PageLoader />}>
+            <RegisterScreen onRegisterSuccess={() => setAuthView('login')} onSwitchToLogin={() => setAuthView('login')} />
+          </Suspense>
+        );
       }
-      return <LoginScreen onLoginSuccess={() => { }} onSwitchToRegister={() => setAuthView('register')} onGuestLogin={handleGuestLogin} />;
+      return (
+        <Suspense fallback={<PageLoader />}>
+          <LoginScreen onLoginSuccess={() => { }} onSwitchToRegister={() => setAuthView('register')} onGuestLogin={handleGuestLogin} />
+        </Suspense>
+      );
     }
 
     switch (activeScreen) {
       case ScreenName.DISCOVERY:
-        return <DiscoveryScreen items={discoveryItems} />;
+        return (
+          <Suspense fallback={<PageLoader />}>
+            <DiscoveryScreen items={discoveryItems} />
+          </Suspense>
+        );
       case ScreenName.TIMELINE:
         return (
-          <TimelineScreen
-            events={timelineEvents}
-            onAddClick={() => guestGuard(() => setActiveScreen(ScreenName.UPLOAD))}
-            onDeleteEvent={async (id) => { if (isGuest) { showGuestToast(); return; } await handleDeleteTimelineEvent(id); }}
-            onUpdateEvent={async (id, data) => { if (isGuest) { showGuestToast(); return; } await handleUpdateTimelineEvent(id, data); }}
-            onDeleteImageSync={handleSyncDeleteFromTimeline}
-            isGuest={isGuest}
-          />
+          <Suspense fallback={<PageLoader />}>
+            <TimelineScreen
+              events={timelineEvents}
+              onAddClick={() => guestGuard(() => setActiveScreen(ScreenName.UPLOAD))}
+              onDeleteEvent={async (id) => { if (isGuest) { showGuestToast(); return; } await handleDeleteTimelineEvent(id); }}
+              onUpdateEvent={async (id, data) => { if (isGuest) { showGuestToast(); return; } await handleUpdateTimelineEvent(id, data); }}
+              onDeleteImageSync={handleSyncDeleteFromTimeline}
+              isGuest={isGuest}
+            />
+          </Suspense>
         );
       case ScreenName.ANNIVERSARY:
         return (
-          <AnniversaryScreen
-            onBack={() => setActiveScreen(ScreenName.TIMELINE)}
-            anniversaries={anniversaries}
-            onAddAnniversary={handleAddAnniversary}
-            onNavigateToMap={() => setActiveScreen(ScreenName.MAP)}
-            userId={user!.id}
-          />
+          <Suspense fallback={<PageLoader />}>
+            <AnniversaryScreen
+              onBack={() => setActiveScreen(ScreenName.TIMELINE)}
+              anniversaries={anniversaries}
+              onAddAnniversary={handleAddAnniversary}
+              onNavigateToMap={() => setActiveScreen(ScreenName.MAP)}
+              userId={user!.id}
+            />
+          </Suspense>
         );
       case ScreenName.MAP:
         return (
-          <MapScreen
-            provinces={provinces}
-            onNavigateToUpload={() => guestGuard(() => setActiveScreen(ScreenName.UPLOAD))}
-            onNavigateToAlbums={() => setActiveScreen(ScreenName.ALBUM_LIST)}
-            isGuest={isGuest}
-          />
+          <Suspense fallback={<PageLoader />}>
+            <MapScreen
+              provinces={provinces}
+              onNavigateToUpload={() => guestGuard(() => setActiveScreen(ScreenName.UPLOAD))}
+              onNavigateToAlbums={() => setActiveScreen(ScreenName.ALBUM_LIST)}
+              isGuest={isGuest}
+            />
+          </Suspense>
         );
       case ScreenName.PUBLISH:
         return (
-          <PublishScreen
-            onBack={() => setActiveScreen(ScreenName.TIMELINE)}
-            onPublish={handlePublish}
-            userId={user!.id}
-          />
+          <Suspense fallback={<PageLoader />}>
+            <PublishScreen
+              onBack={() => setActiveScreen(ScreenName.TIMELINE)}
+              onPublish={handlePublish}
+              userId={user!.id}
+            />
+          </Suspense>
         );
       case ScreenName.UPLOAD:
         return (
-          <UploadScreen
-            provinces={provinces}
-            onBack={() => setActiveScreen(ScreenName.MAP)}
-            onUpload={handleUpload}
-            userId={user!.id}
-          />
+          <Suspense fallback={<PageLoader />}>
+            <UploadScreen
+              provinces={provinces}
+              onBack={() => setActiveScreen(ScreenName.MAP)}
+              onUpload={handleUpload}
+              userId={user!.id}
+            />
+          </Suspense>
         );
       case ScreenName.ALBUM_LIST:
         return (
-          <AlbumListScreen
-            provinces={provinces}
-            onBack={() => setActiveScreen(ScreenName.MAP)}
-            userId={user!.id}
-            onRefresh={reloadProvinces}
-            onDeletePhoto={isGuest ? async () => { showGuestToast(); } : handleSyncDeleteFromAlbum}
-            isGuest={isGuest}
-          />
+          <Suspense fallback={<PageLoader />}>
+            <AlbumListScreen
+              provinces={provinces}
+              onBack={() => setActiveScreen(ScreenName.MAP)}
+              userId={user!.id}
+              onRefresh={reloadProvinces}
+              onDeletePhoto={isGuest ? async () => { showGuestToast(); } : handleSyncDeleteFromAlbum}
+              isGuest={isGuest}
+            />
+          </Suspense>
         );
       default:
         return (
-          <TimelineScreen
-            events={timelineEvents}
-            onAddClick={() => guestGuard(() => setActiveScreen(ScreenName.UPLOAD))}
-            onDeleteEvent={async (id) => { if (isGuest) { showGuestToast(); return; } await handleDeleteTimelineEvent(id); }}
-            onUpdateEvent={async (id, data) => { if (isGuest) { showGuestToast(); return; } await handleUpdateTimelineEvent(id, data); }}
-            onDeleteImageSync={handleSyncDeleteFromTimeline}
-            isGuest={isGuest}
-          />
+          <Suspense fallback={<PageLoader />}>
+            <TimelineScreen
+              events={timelineEvents}
+              onAddClick={() => guestGuard(() => setActiveScreen(ScreenName.UPLOAD))}
+              onDeleteEvent={async (id) => { if (isGuest) { showGuestToast(); return; } await handleDeleteTimelineEvent(id); }}
+              onUpdateEvent={async (id, data) => { if (isGuest) { showGuestToast(); return; } await handleUpdateTimelineEvent(id, data); }}
+              onDeleteImageSync={handleSyncDeleteFromTimeline}
+              isGuest={isGuest}
+            />
+          </Suspense>
         );
     }
   };

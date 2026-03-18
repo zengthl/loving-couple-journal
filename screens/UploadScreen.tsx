@@ -61,7 +61,7 @@ export const UploadScreen: React.FC<UploadScreenProps> = ({ provinces, onBack, o
             <div className="mt-4 grid grid-cols-3 gap-2">
               {photos.map((photo, idx) => (
                 <div key={idx} className="relative aspect-square rounded-xl overflow-hidden shadow-sm">
-                  <img src={photo} alt="Uploaded" className="w-full h-full object-cover" />
+                  <img src={photo} alt="Uploaded" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                   <button
                     onClick={() => setPhotos(photos.filter((_, i) => i !== idx))}
                     className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1 hover:bg-black/70"

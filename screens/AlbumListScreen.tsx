@@ -142,7 +142,7 @@ const MediaTile: React.FC<MediaTileProps> = ({
           onLoadedMetadata={(event) => onVideoMetadata?.(event.currentTarget.duration)}
         />
       ) : (
-        <img src={src} alt="" className="w-full h-full object-cover" />
+        <img src={src} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
       )}
 
       {isLivePhoto && (
@@ -494,7 +494,7 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({ provinces, onB
                     isFirstPhotoVideo ? (
                       <video src={firstPhoto} className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500" muted playsInline />
                     ) : (
-                      <img src={firstPhoto} alt={province.name} className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500" />
+                      <img src={firstPhoto} alt={province.name} loading="lazy" decoding="async" className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500" />
                     )
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-300">

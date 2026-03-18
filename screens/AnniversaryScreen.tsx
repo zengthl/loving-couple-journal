@@ -82,7 +82,7 @@ export const AnniversaryScreen: React.FC<AnniversaryScreenProps> = ({
               <div className="flex justify-center mb-2">
                 {newImage ? (
                   <div className="relative w-full h-32 rounded-2xl overflow-hidden group">
-                    <img src={newImage} alt="New Anniversary" className="w-full h-full object-cover" />
+                    <img src={newImage} alt="New Anniversary" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                     <button
                       onClick={() => setNewImage('')}
                       className="absolute top-2 right-2 bg-black/50 p-1 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
@@ -182,7 +182,7 @@ export const AnniversaryScreen: React.FC<AnniversaryScreenProps> = ({
                 <div className="flex items-center gap-3 overflow-hidden">
                   {ann.image ? (
                     <div className="w-12 h-12 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden">
-                      <img src={ann.image} alt={ann.title} className="w-full h-full object-cover" />
+                      <img src={ann.image} alt={ann.title} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                     </div>
                   ) : (
                     <div className="w-12 h-12 rounded-lg bg-pink-50 flex items-center justify-center text-pink-500 flex-shrink-0">
@@ -226,6 +226,8 @@ export const AnniversaryScreen: React.FC<AnniversaryScreenProps> = ({
                   <img
                     src="/assets/couple_cherry.jpg"
                     alt="Couple holding hands"
+                    loading="lazy"
+                    decoding="async"
                     className="object-cover w-full h-full hover:scale-105 transition-transform duration-700"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-60"></div>
@@ -244,6 +246,8 @@ export const AnniversaryScreen: React.FC<AnniversaryScreenProps> = ({
                   <img
                     src="/assets/heart_hands.jpg"
                     alt="Coffee moment"
+                    loading="lazy"
+                    decoding="async"
                     className="object-cover w-full h-full hover:scale-105 transition-transform duration-700"
                   />
                 </div>

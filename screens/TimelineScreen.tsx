@@ -136,7 +136,7 @@ export const TimelineScreen: React.FC<TimelineScreenProps> = ({
                                     preload="metadata"
                                   />
                                 ) : (
-                                  <img src={img} alt={event.title} className="h-full w-full object-cover" />
+                                  <img src={img} alt={event.title} loading="lazy" decoding="async" className="h-full w-full object-cover" />
                                 )}
                                 {isVideo && (
                                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
