@@ -100,8 +100,8 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({
   const handleProvinceClick = useCallback(async (province: Province) => {
     setSelectedProvince(province);
 
-    // Fetch visits for this province
-    const visits = await fetchProvinceVisits(userId, province.id);
+    // Fetch visits for this province (shared journal - all users)
+    const visits = await fetchProvinceVisits('', province.id);
 
     if (visits.length === 0) {
       // No visits, show empty state
@@ -183,7 +183,7 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({
       }
 
       // Refresh data
-      const visits = await fetchProvinceVisits(userId, selectedProvince.id);
+      const visits = await fetchProvinceVisits('', selectedProvince.id);
       setCityVisits(visits);
       setCitySummaries(groupVisitsByCity(visits));
       onRefresh();
@@ -200,7 +200,7 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({
     try {
       const success = await addPhotosToVisit(uploadTargetVisitId, uploadedUrls);
       if (success) {
-        const visits = await fetchProvinceVisits(userId, selectedProvince.id);
+        const visits = await fetchProvinceVisits('', selectedProvince.id);
         setCityVisits(visits);
         setCitySummaries(groupVisitsByCity(visits));
         onRefresh();
@@ -222,7 +222,7 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({
     try {
       const visit = await createVisit(userId, selectedProvince.id, city, visitDate, uploadedUrls);
       if (visit) {
-        const visits = await fetchProvinceVisits(userId, selectedProvince.id);
+        const visits = await fetchProvinceVisits('', selectedProvince.id);
         setCityVisits(visits);
         setCitySummaries(groupVisitsByCity(visits));
         onRefresh();
@@ -342,7 +342,7 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({
         onDeletePhoto={async (visitId, photoUrl) => {
           if (isGuest) return;
           await deletePhotoFromVisit(visitId, photoUrl);
-          const visits = await fetchProvinceVisits(userId, selectedProvince.id);
+          const visits = await fetchProvinceVisits('', selectedProvince.id);
           setCityVisits(visits);
           setCitySummaries(groupVisitsByCity(visits));
           onRefresh();
