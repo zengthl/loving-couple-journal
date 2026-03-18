@@ -562,3 +562,180 @@ export async function removeImageFromTimelineEvents(userId: string, imageUrl: st
     return true;
 }
 
+// ==================== Province Visit Management (Timeline Feature) ====================
+
+import { ProvinceVisit, CitySummary } from '../types';
+import { DbProvinceVisit } from './supabase';
+
+function toProvinceVisit(db: DbProvinceVisit): ProvinceVisit {
+    return {
+        id: db.id,
+        userId: db.user_id,
+        provinceId: db.province_id,
+        city: db.city,
+        visitDate: db.visit_date,
+        photos: db.photos || [],
+        createdAt: db.created_at
+    };
+}
+
+// Fetch all visits for a province, grouped by city
+export async function fetchProvinceVisits(userId: string, provinceId: string): Promise<ProvinceVisit[]> {
+    let query = supabase
+        .from('user_province_visits')
+        .select('*')
+        .eq('province_id', provinceId);
+
+    if (userId) {
+        query = query.eq('user_id', userId);
+    }
+
+    const { data, error } = await query.order('visit_date', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching province visits:', error);
+        return [];
+    }
+
+    return (data || []).map(toProvinceVisit);
+}
+
+// Group visits by city for city selection screen
+export function groupVisitsByCity(visits: ProvinceVisit[]): CitySummary[] {
+    const cityMap = new Map<string, ProvinceVisit[]>();
+
+    visits.forEach(visit => {
+        const cityName = visit.city || '未分类';
+        if (!cityMap.has(cityName)) {
+            cityMap.set(cityName, []);
+        }
+        cityMap.get(cityName)!.push(visit);
+    });
+
+    const summaries: CitySummary[] = [];
+    cityMap.forEach((cityVisits, cityName) => {
+        // Sort visits by date descending
+        cityVisits.sort((a, b) => {
+            const dateA = a.visitDate.replace(/\./g, '');
+            const dateB = b.visitDate.replace(/\./g, '');
+            return dateB.localeCompare(dateA);
+        });
+
+        const totalPhotos = cityVisits.reduce((sum, v) => sum + v.photos.length, 0);
+        const coverPhoto = cityVisits.length > 0 && cityVisits[0].photos.length > 0
+            ? cityVisits[0].photos[0]
+            : null;
+
+        summaries.push({
+            cityName,
+            totalPhotos,
+            visits: cityVisits,
+            coverPhoto
+        });
+    });
+
+    // Sort by total photos descending (most active cities first)
+    summaries.sort((a, b) => b.totalPhotos - a.totalPhotos);
+    return summaries;
+}
+
+// Add photos to an existing visit
+export async function addPhotosToVisit(visitId: string, photos: string[]): Promise<boolean> {
+    // First get current photos
+    const { data: visit, error: fetchError } = await supabase
+        .from('user_province_visits')
+        .select('photos')
+        .eq('id', visitId)
+        .single();
+
+    if (fetchError || !visit) {
+        console.error('Error fetching visit:', fetchError);
+        return false;
+    }
+
+    const mergedPhotos = [...(visit.photos || []), ...photos];
+
+    const { error } = await supabase
+        .from('user_province_visits')
+        .update({ photos: mergedPhotos })
+        .eq('id', visitId);
+
+    if (error) {
+        console.error('Error adding photos to visit:', error);
+        return false;
+    }
+
+    return true;
+}
+
+// Delete a specific photo from a specific visit
+export async function deletePhotoFromVisit(visitId: string, photoUrl: string): Promise<boolean> {
+    // First get current photos
+    const { data: visit, error: fetchError } = await supabase
+        .from('user_province_visits')
+        .select('photos')
+        .eq('id', visitId)
+        .single();
+
+    if (fetchError || !visit) {
+        console.error('Error fetching visit:', fetchError);
+        return false;
+    }
+
+    const newPhotos = (visit.photos || []).filter((p: string) => p !== photoUrl);
+
+    if (newPhotos.length === 0) {
+        // Delete the visit row if no photos left
+        const { error } = await supabase
+            .from('user_province_visits')
+            .delete()
+            .eq('id', visitId);
+
+        if (error) {
+            console.error('Error deleting visit:', error);
+            return false;
+        }
+    } else {
+        // Update with remaining photos
+        const { error } = await supabase
+            .from('user_province_visits')
+            .update({ photos: newPhotos })
+            .eq('id', visitId);
+
+        if (error) {
+            console.error('Error updating visit photos:', error);
+            return false;
+        }
+    }
+
+    return true;
+}
+
+// Create a new visit entry
+export async function createVisit(
+    userId: string,
+    provinceId: string,
+    city: string | null,
+    visitDate: string,
+    photos: string[]
+): Promise<ProvinceVisit | null> {
+    const { data, error } = await supabase
+        .from('user_province_visits')
+        .insert([{
+            user_id: userId,
+            province_id: provinceId,
+            city: city,
+            visit_date: visitDate,
+            photos: photos
+        }])
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Error creating visit:', error);
+        return null;
+    }
+
+    return toProvinceVisit(data);
+}
+

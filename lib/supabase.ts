@@ -56,3 +56,13 @@ export interface DbAnniversary {
     location: string | null;
     created_at: string;
 }
+
+export interface DbProvinceVisit {
+    id: string;
+    user_id: string;
+    province_id: string;
+    visit_date: string;
+    photos: string[];
+    city: string | null;
+    created_at: string;
+}

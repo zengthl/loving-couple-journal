@@ -65,3 +65,38 @@ export interface Province {
   photos: string[];
   cityPhotos?: Record<string, string[]>; // { cityName: [photo1, photo2, ...] }
 }
+
+// Individual visit record with its own photos and date
+export interface ProvinceVisit {
+  id: string;                    // UUID from user_province_visits.id
+  userId: string;
+  provinceId: string;
+  city: string | null;           // null = "未分类"
+  visitDate: string;             // "2024.03.15"
+  photos: string[];              // Photos for this specific visit
+  createdAt: string;
+}
+
+// City summary for city selection screen
+export interface CitySummary {
+  cityName: string;              // Display name
+  totalPhotos: number;
+  visits: ProvinceVisit[];       // Sorted by visitDate descending
+  coverPhoto: string | null;     // First photo of most recent visit
+}
+
+// Timeline entry for a city's visit history
+export interface CityTimelineEntry {
+  visitId: string;
+  visitDate: string;
+  photoCount: number;
+  photos: string[];
+}
+
+// Album view modes
+export enum AlbumViewMode {
+  PROVINCE_LIST = 'province_list',      // List of provinces
+  CITY_SELECT = 'city_select',          // City selection grid
+  PHOTO_GRID = 'photo_grid',            // Photo grid view
+  CITY_TIMELINE = 'city_timeline'       // Timeline of visits to a city
+}
