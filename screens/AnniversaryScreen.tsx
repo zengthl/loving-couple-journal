@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Plus, Heart, Bookmark, MapPin, Clock, Map as MapIcon, Calendar, X, Camera } from 'lucide-react';
+import { ArrowLeft, Plus, Heart, Bookmark, MapPin, Calendar, X, Camera } from 'lucide-react';
 import { Anniversary } from '../types';
 import { ImageUploader } from '../components/ImageUploader';
 
@@ -11,12 +11,36 @@ interface AnniversaryScreenProps {
   userId: string;
 }
 
+const createDate = (value: string) => new Date(`${value}T00:00:00`);
+
+const formatAnniversaryDate = (value: string) => {
+  if (!value) {
+    return 'Choose a date';
+  }
+  return new Intl.DateTimeFormat('en', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  }).format(createDate(value));
+};
+
+const calculateDays = (value: string) => {
+  if (!value) {
+    return 0;
+  }
+  const start = createDate(value);
+  const today = new Date();
+  const current = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const diff = current.getTime() - start.getTime();
+  return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+};
+
 export const AnniversaryScreen: React.FC<AnniversaryScreenProps> = ({
   onBack,
   anniversaries,
   onAddAnniversary,
   onNavigateToMap,
-  userId
+  userId,
 }) => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [newTitle, setNewTitle] = useState('');
@@ -24,68 +48,57 @@ export const AnniversaryScreen: React.FC<AnniversaryScreenProps> = ({
   const [newLocation, setNewLocation] = useState('');
   const [newImage, setNewImage] = useState('');
 
-  // Default main anniversary (first one)
-  const mainAnniversary = anniversaries[0] || { title: '我们在一起', date: '2025-03-23' };
-
-  // Calculate days together for main anniversary
-  const calculateDays = (dateStr: string) => {
-    const start = new Date(dateStr);
-    const now = new Date();
-    const diff = now.getTime() - start.getTime();
-    return Math.floor(diff / (1000 * 60 * 60 * 24));
-  };
-
+  const mainAnniversary = anniversaries[0] || { title: 'We are together', date: '2025-03-23' };
   const daysTogether = calculateDays(mainAnniversary.date);
 
   const handleSubmit = () => {
-    if (newTitle && newDate) {
-      onAddAnniversary(newTitle, newDate, newImage, newLocation);
-      setShowAddModal(false);
-      setNewTitle('');
-      setNewDate('');
-      setNewLocation('');
-      setNewImage('');
+    if (!newTitle || !newDate) {
+      return;
     }
+
+    onAddAnniversary(newTitle, newDate, newImage || undefined, newLocation || undefined);
+    setShowAddModal(false);
+    setNewTitle('');
+    setNewDate('');
+    setNewLocation('');
+    setNewImage('');
   };
 
   return (
-    <div className="flex flex-col h-full bg-background-light relative">
-      {/* Top Bar */}
-      <div className="sticky top-0 z-40 flex items-center justify-between p-4 bg-background-light/80 backdrop-blur-md">
-        <button onClick={onBack} className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm text-text-main transition hover:scale-105 active:scale-95">
+    <div className="relative flex h-full flex-col bg-background-light">
+      <div className="sticky top-0 z-40 flex items-center justify-between bg-background-light/80 p-4 backdrop-blur-md">
+        <button onClick={onBack} className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-text-main shadow-sm transition hover:scale-105 active:scale-95">
           <ArrowLeft size={20} />
         </button>
         <button
           onClick={() => setShowAddModal(true)}
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm text-text-main transition hover:scale-105 active:scale-95"
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-text-main shadow-sm transition hover:scale-105 active:scale-95"
         >
           <Plus size={20} />
         </button>
       </div>
 
-      {/* Add Modal Overlay */}
       {showAddModal && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-          <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl animate-scale-up">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-text-main">添加纪念日</h3>
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl animate-scale-up">
+            <div className="mb-6 flex items-center justify-between">
+              <h3 className="text-xl font-bold text-text-main">Add anniversary</h3>
               <button
                 onClick={() => setShowAddModal(false)}
-                className="p-1 rounded-full hover:bg-gray-100"
+                className="rounded-full p-1 hover:bg-gray-100"
               >
                 <X size={24} className="text-gray-400" />
               </button>
             </div>
 
             <div className="space-y-4">
-              {/* Image Upload */}
-              <div className="flex justify-center mb-2">
+              <div className="mb-2 flex justify-center">
                 {newImage ? (
-                  <div className="relative w-full h-32 rounded-2xl overflow-hidden group">
-                    <img src={newImage} alt="New Anniversary" loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                  <div className="group relative h-32 w-full overflow-hidden rounded-2xl">
+                    <img src={newImage} alt="New anniversary" loading="lazy" decoding="async" className="h-full w-full object-cover" />
                     <button
                       onClick={() => setNewImage('')}
-                      className="absolute top-2 right-2 bg-black/50 p-1 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute right-2 top-2 rounded-full bg-black/50 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100"
                     >
                       <X size={16} />
                     </button>
@@ -95,51 +108,55 @@ export const AnniversaryScreen: React.FC<AnniversaryScreenProps> = ({
                     userId={userId}
                     folder="anniversary"
                     maxImages={1}
-                    onUploadComplete={(urls) => urls.length > 0 && setNewImage(urls[0])}
+                    onUploadComplete={(urls) => {
+                      if (urls.length > 0) {
+                        setNewImage(urls[0]);
+                      }
+                    }}
                   >
-                    <div className="w-full h-32 rounded-2xl bg-gray-50 border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-2 text-gray-400 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all cursor-pointer">
+                    <div className="flex h-32 w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 text-gray-400 transition-all hover:border-primary/50 hover:bg-primary/5 hover:text-primary">
                       <Camera size={24} />
-                      <span className="text-xs font-medium">添加照片</span>
+                      <span className="text-xs font-medium">Add photo</span>
                     </div>
                   </ImageUploader>
                 )}
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">名称</label>
-                <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-transparent focus-within:border-primary/50 focus-within:bg-white transition-all">
+                <label className="text-xs font-bold uppercase tracking-wider text-gray-400">Title</label>
+                <div className="flex items-center gap-3 rounded-xl border border-transparent bg-gray-50 p-3 transition-all focus-within:border-primary/50 focus-within:bg-white">
                   <Heart size={18} className="text-primary" />
                   <input
                     value={newTitle}
-                    onChange={(e) => setNewTitle(e.target.value)}
-                    placeholder="例如: 第一次约会"
-                    className="flex-1 bg-transparent border-none p-0 text-text-main placeholder:text-gray-400 focus:ring-0 text-sm font-medium"
+                    onChange={(event) => setNewTitle(event.target.value)}
+                    placeholder="First date, proposal, trip..."
+                    className="flex-1 border-none bg-transparent p-0 text-sm font-medium text-text-main placeholder:text-gray-400 focus:ring-0"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">城市</label>
-                <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-transparent focus-within:border-primary/50 focus-within:bg-white transition-all">
+                <label className="text-xs font-bold uppercase tracking-wider text-gray-400">Location</label>
+                <div className="flex items-center gap-3 rounded-xl border border-transparent bg-gray-50 p-3 transition-all focus-within:border-primary/50 focus-within:bg-white">
                   <MapPin size={18} className="text-primary" />
                   <input
                     value={newLocation}
-                    onChange={(e) => setNewLocation(e.target.value)}
-                    placeholder="例如: 上海"
-                    className="flex-1 bg-transparent border-none p-0 text-text-main placeholder:text-gray-400 focus:ring-0 text-sm font-medium"
+                    onChange={(event) => setNewLocation(event.target.value)}
+                    placeholder="City or place"
+                    className="flex-1 border-none bg-transparent p-0 text-sm font-medium text-text-main placeholder:text-gray-400 focus:ring-0"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">日期</label>
-                <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-transparent focus-within:border-primary/50 focus-within:bg-white transition-all">
+                <label className="text-xs font-bold uppercase tracking-wider text-gray-400">Date</label>
+                <div className="flex items-center gap-3 rounded-xl border border-transparent bg-gray-50 p-3 transition-all focus-within:border-primary/50 focus-within:bg-white">
                   <Calendar size={18} className="text-primary" />
                   <input
                     type="date"
                     value={newDate}
-                    onChange={(e) => setNewDate(e.target.value)}
-                    className="flex-1 bg-transparent border-none p-0 text-text-main focus:ring-0 text-sm font-medium"
+                    onChange={(event) => setNewDate(event.target.value)}
+                    className="flex-1 border-none bg-transparent p-0 text-sm font-medium text-text-main focus:ring-0"
                   />
                 </div>
               </div>
@@ -147,120 +164,118 @@ export const AnniversaryScreen: React.FC<AnniversaryScreenProps> = ({
               <button
                 onClick={handleSubmit}
                 disabled={!newTitle || !newDate}
-                className={`w-full py-3.5 rounded-xl font-bold text-white shadow-lg shadow-primary/30 mt-4 transition-all active:scale-[0.98] ${newTitle && newDate ? 'bg-primary' : 'bg-gray-300 cursor-not-allowed shadow-none'}`}
+                className={`mt-4 w-full rounded-xl py-3.5 font-bold text-white transition-all active:scale-[0.98] ${newTitle && newDate ? 'bg-primary shadow-lg shadow-primary/30' : 'cursor-not-allowed bg-gray-300 shadow-none'}`}
               >
-                确认添加
+                Save anniversary
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col items-center px-6 pt-4 pb-20 space-y-8 animate-fade-in overflow-y-auto no-scrollbar">
-
-        {/* Hero Date Section */}
-        <div className="flex flex-col items-center gap-2 text-center w-full animate-slide-up">
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary uppercase tracking-wider">
+      <div className="no-scrollbar flex flex-1 flex-col items-center space-y-8 overflow-y-auto px-6 pb-20 pt-4 animate-fade-in">
+        <div className="flex w-full animate-slide-up flex-col items-center gap-2 text-center">
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-primary">
             <Heart size={12} fill="currentColor" />
             {daysTogether} Days Together
           </div>
-          <h1 className="text-[#4A3434] text-[32px] md:text-[36px] font-extrabold leading-tight tracking-tight mt-2">
-            {mainAnniversary.date.replace(/-/g, '年').replace(/-/, '月') + '日'}
+          <h1 className="mt-2 text-[32px] font-extrabold leading-tight tracking-tight text-[#4A3434] md:text-[36px]">
+            {formatAnniversaryDate(mainAnniversary.date)}
           </h1>
-          <div className="w-12 h-1 bg-primary rounded-full my-2"></div>
-          <p className="text-text-sub text-base font-normal leading-relaxed italic">
+          <div className="my-2 h-1 w-12 rounded-full bg-primary"></div>
+          <p className="text-base italic leading-relaxed text-text-sub">
             "{mainAnniversary.title}"
           </p>
+          <button
+            onClick={onNavigateToMap}
+            className="inline-flex items-center gap-2 rounded-full border border-stone-100 bg-white px-4 py-2 text-sm font-medium text-text-main shadow-sm transition hover:shadow-md"
+          >
+            <MapPin size={14} className="text-primary" />
+            Open travel map
+          </button>
         </div>
 
-        {/* Other Anniversaries List */}
         {anniversaries.length > 1 && (
           <div className="w-full space-y-3">
-            {anniversaries.slice(1).map(ann => (
-              <div key={ann.id} className="flex items-center justify-between bg-white p-3 rounded-xl shadow-sm border border-stone-50 group hover:shadow-md transition-all">
+            {anniversaries.slice(1).map((anniversary) => (
+              <div key={anniversary.id} className="group flex items-center justify-between rounded-xl border border-stone-50 bg-white p-3 shadow-sm transition-all hover:shadow-md">
                 <div className="flex items-center gap-3 overflow-hidden">
-                  {ann.image ? (
-                    <div className="w-12 h-12 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden">
-                      <img src={ann.image} alt={ann.title} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                  {anniversary.image ? (
+                    <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100">
+                      <img src={anniversary.image} alt={anniversary.title} loading="lazy" decoding="async" className="h-full w-full object-cover" />
                     </div>
                   ) : (
-                    <div className="w-12 h-12 rounded-lg bg-pink-50 flex items-center justify-center text-pink-500 flex-shrink-0">
+                    <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-pink-50 text-pink-500">
                       <Calendar size={20} />
                     </div>
                   )}
 
                   <div className="min-w-0">
-                    <h4 className="font-bold text-text-main text-sm truncate">{ann.title}</h4>
+                    <h4 className="truncate text-sm font-bold text-text-main">{anniversary.title}</h4>
                     <div className="flex items-center gap-1 text-xs text-text-sub">
-                      <span>{ann.date}</span>
-                      {ann.location && (
+                      <span>{anniversary.date}</span>
+                      {anniversary.location && (
                         <>
-                          <span className="w-1 h-1 rounded-full bg-gray-300"></span>
-                          <span className="truncate max-w-[80px]">{ann.location}</span>
+                          <span className="h-1 w-1 rounded-full bg-gray-300"></span>
+                          <span className="max-w-[80px] truncate">{anniversary.location}</span>
                         </>
                       )}
                     </div>
                   </div>
                 </div>
-                <div className="text-right flex-shrink-0 pl-2">
-                  <span className="text-primary font-bold text-lg">{calculateDays(ann.date)}</span>
-                  <span className="text-xs text-text-sub ml-1">天</span>
+
+                <div className="flex-shrink-0 pl-2 text-right">
+                  <span className="text-lg font-bold text-primary">{calculateDays(anniversary.date)}</span>
+                  <span className="ml-1 text-xs text-text-sub">days</span>
                 </div>
               </div>
             ))}
           </div>
         )}
 
-        {/* Photo Grid (Film Style) */}
-        <div className="w-full relative group cursor-pointer mt-4">
-          {/* Decorative blurs */}
-          <div className="absolute -top-4 -right-4 h-24 w-24 rounded-full bg-primary/10 blur-2xl"></div>
+        <div className="group relative mt-4 w-full cursor-pointer">
+          <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-primary/10 blur-2xl"></div>
           <div className="absolute -bottom-4 -left-4 h-32 w-32 rounded-full bg-blue-200/10 blur-2xl"></div>
 
           <div className="relative flex flex-col gap-6 md:gap-8">
-            {/* Photo 1: Tilted Left */}
-            <div className="relative transform -rotate-1 hover:rotate-0 transition-transform duration-500 ease-out z-10">
-              <div className="bg-white p-3 pb-8 rounded-lg shadow-card border border-stone-100">
-                <div className="w-full aspect-[4/3] bg-stone-200 rounded overflow-hidden relative">
+            <div className="relative z-10 -rotate-1 transform transition-transform duration-500 ease-out hover:rotate-0">
+              <div className="rounded-lg border border-stone-100 bg-white p-3 pb-8 shadow-card">
+                <div className="relative aspect-[4/3] w-full overflow-hidden rounded bg-stone-200">
                   <img
                     src="/assets/couple_cherry.jpg"
                     alt="Couple holding hands"
                     loading="lazy"
                     decoding="async"
-                    className="object-cover w-full h-full hover:scale-105 transition-transform duration-700"
+                    className="h-full w-full object-cover transition-transform duration-700 hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-60"></div>
                 </div>
-                <div className="flex justify-between items-center mt-3 px-1">
-                  <span className="text-xs font-handwriting text-text-sub/70">#SunsetWalks</span>
+                <div className="mt-3 flex items-center justify-between px-1">
+                  <span className="font-handwriting text-xs text-text-sub/70">#SunsetWalks</span>
                   <Heart size={16} className="text-primary/60" />
                 </div>
               </div>
             </div>
 
-            {/* Photo 2: Tilted Right */}
-            <div className="relative transform rotate-2 hover:rotate-0 transition-transform duration-500 ease-out z-20 -mt-12">
-              <div className="bg-white p-3 pb-8 rounded-lg shadow-card border border-stone-100">
-                <div className="w-full aspect-[4/3] bg-stone-200 rounded overflow-hidden relative">
+            <div className="relative z-20 -mt-12 rotate-2 transform transition-transform duration-500 ease-out hover:rotate-0">
+              <div className="rounded-lg border border-stone-100 bg-white p-3 pb-8 shadow-card">
+                <div className="relative aspect-[4/3] w-full overflow-hidden rounded bg-stone-200">
                   <img
                     src="/assets/heart_hands.jpg"
                     alt="Coffee moment"
                     loading="lazy"
                     decoding="async"
-                    className="object-cover w-full h-full hover:scale-105 transition-transform duration-700"
+                    className="h-full w-full object-cover transition-transform duration-700 hover:scale-105"
                   />
                 </div>
-                <div className="flex justify-between items-center mt-3 px-1">
-                  <span className="text-xs font-handwriting text-text-sub/70">#CoffeeDate</span>
+                <div className="mt-3 flex items-center justify-between px-1">
+                  <span className="font-handwriting text-xs text-text-sub/70">#CoffeeDate</span>
                   <Bookmark size={16} className="text-primary/60" />
                 </div>
               </div>
             </div>
           </div>
         </div>
-
-
       </div>
     </div>
   );

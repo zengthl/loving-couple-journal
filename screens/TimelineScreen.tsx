@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { ArrowLeft, Lock, Heart, MapPin, Store, Film, Waves, Plus, Play } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { Lock, Heart, MapPin, Play } from 'lucide-react';
 import { TimelineEvent } from '../types';
 import { EventDetailModal } from '../components/EventDetailModal';
 
@@ -20,35 +20,31 @@ const isVideoUrl = (url: string): boolean => {
 
 export const TimelineScreen: React.FC<TimelineScreenProps> = ({
   events,
-  onAddClick,
   onDeleteEvent,
   onUpdateEvent,
   onDeleteImageSync,
-  isGuest
+  isGuest,
 }) => {
   const [viewingEvent, setViewingEvent] = useState<TimelineEvent | null>(null);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   const isLongPress = useRef(false);
 
-  // Group unique months/years
-  const months = Array.from(new Set(events.map(e => `${e.year}-${e.month}`)))
-    .map((str: string) => {
-      const [year, month] = str.split('-');
-      return { year, month };
-    });
+  const months = Array.from(new Set<string>(events.map(event => `${event.year}-${event.month}`))).map((value) => {
+    const [year, month] = value.split('-');
+    return { year, month };
+  });
 
   const handleLongPressStart = (event: TimelineEvent) => {
     isLongPress.current = false;
     longPressTimer.current = setTimeout(() => {
       isLongPress.current = true;
-      // Vibrate if supported
       if (navigator.vibrate) {
         navigator.vibrate(50);
       }
-      if (window.confirm(`确定要删除"${event.title}"吗？`)) {
-        onDeleteEvent(event.id);
+      if (window.confirm(`Delete "${event.title}"?`)) {
+        void onDeleteEvent(event.id);
       }
-    }, 500); // 500ms long press
+    }, 500);
   };
 
   const handleLongPressEnd = () => {
@@ -59,7 +55,6 @@ export const TimelineScreen: React.FC<TimelineScreenProps> = ({
   };
 
   const handleClick = (event: TimelineEvent) => {
-    // Only open detail if not a long press
     if (!isLongPress.current) {
       setViewingEvent(event);
     }
@@ -67,49 +62,45 @@ export const TimelineScreen: React.FC<TimelineScreenProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full bg-background-light">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-background-light/90 backdrop-blur-md px-4 py-4 flex items-center justify-between border-b border-primary/10">
-        <button className="w-10 h-10 flex items-center justify-center rounded-full active:bg-gray-100 transition-colors text-text-main">
-          <ArrowLeft size={20} />
-        </button>
-        <h1 className="text-xl font-bold text-text-main tracking-tight">恋爱足迹</h1>
-        <div className="flex items-center gap-1 bg-primary/10 px-3 py-1.5 rounded-full border border-primary/20">
-          <Lock size={12} className="text-primary fill-primary" />
-          <span className="text-xs font-bold text-text-sub tracking-wide">仅你们可见</span>
+    <div className="flex h-full flex-col bg-background-light">
+      <header className="sticky top-0 z-50 flex items-center justify-between border-b border-primary/10 bg-background-light/90 px-4 py-4 backdrop-blur-md">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <Heart size={18} fill="currentColor" />
+        </div>
+        <h1 className="text-xl font-bold tracking-tight text-text-main">Our Timeline</h1>
+        <div className="flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5">
+          <Lock size={12} className="fill-primary text-primary" />
+          <span className="text-xs font-bold tracking-wide text-text-sub">{isGuest ? 'Guest view' : 'Private'}</span>
         </div>
       </header>
 
-      {/* Content */}
-      <div className="flex-1 px-5 pt-2 pb-20">
+      <div className="flex-1 px-5 pb-20 pt-2">
         {months.map(({ month, year }) => {
-          const monthEvents = events.filter(e => e.month === month && e.year === year);
-          if (monthEvents.length === 0) return null;
+          const monthEvents = events.filter(event => event.month === month && event.year === year);
+          if (monthEvents.length === 0) {
+            return null;
+          }
 
           return (
             <div key={`${year}-${month}`} className="mb-8">
-              {/* Sticky Month Header */}
-              <div className="sticky top-[72px] z-40 py-4 bg-background-light">
+              <div className="sticky top-[72px] z-40 bg-background-light py-4">
                 <div className="flex items-baseline gap-2">
                   <h2 className="text-2xl font-bold text-text-main">{month}</h2>
                   <span className="text-lg font-medium text-text-sub/70">{year}</span>
                 </div>
               </div>
 
-              {/* Timeline Line */}
-              <div className="relative pl-4 border-l-2 border-primary/20 ml-2 space-y-8">
-                {monthEvents.map(event => (
-                  <div key={event.id} className="relative pl-6 group">
-                    {/* Node Dot */}
+              <div className="relative ml-2 space-y-8 border-l-2 border-primary/20 pl-4">
+                {monthEvents.map((event) => (
+                  <div key={event.id} className="group relative pl-6">
                     {event.isSpecial ? (
-                      <div className="absolute -left-[11px] top-4 w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center z-10 shadow-sm">
+                      <div className="absolute -left-[11px] top-4 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-white shadow-sm">
                         <Heart size={12} fill="currentColor" />
                       </div>
                     ) : (
-                      <div className="absolute -left-[9px] top-4 w-4 h-4 rounded-full bg-background-light border-[3px] border-primary z-10 box-content"></div>
+                      <div className="absolute -left-[9px] top-4 box-content h-4 w-4 rounded-full border-[3px] border-primary bg-background-light"></div>
                     )}
 
-                    {/* Card with long press */}
                     <div
                       onClick={() => handleClick(event)}
                       onTouchStart={() => handleLongPressStart(event)}
@@ -118,30 +109,29 @@ export const TimelineScreen: React.FC<TimelineScreenProps> = ({
                       onMouseDown={() => handleLongPressStart(event)}
                       onMouseUp={handleLongPressEnd}
                       onMouseLeave={handleLongPressEnd}
-                      className="bg-white rounded-2xl p-3 shadow-card hover:shadow-soft transition-all duration-300 transform active:scale-[0.98] cursor-pointer select-none"
+                      className="cursor-pointer select-none rounded-2xl bg-white p-3 shadow-card transition-all duration-300 hover:shadow-soft active:scale-[0.98]"
                     >
-                      {/* Image Area */}
                       {event.images.length > 0 && (
-                        <div className={`relative w-full overflow-hidden rounded-xl mb-3 bg-gray-100 ${event.images.length > 1 ? 'grid grid-cols-2 gap-1 aspect-[4/3]' : 'aspect-[4/3]'}`}>
-                          {event.images.slice(0, 4).map((img, i) => {
-                            const isVideo = isVideoUrl(img);
+                        <div className={`relative mb-3 w-full overflow-hidden rounded-xl bg-gray-100 ${event.images.length > 1 ? 'grid aspect-[4/3] grid-cols-2 gap-1' : 'aspect-[4/3]'}`}>
+                          {event.images.slice(0, 4).map((imageUrl, index) => {
+                            const isVideo = isVideoUrl(imageUrl);
                             return (
-                              <div key={i} className="relative h-full w-full">
+                              <div key={index} className="relative h-full w-full">
                                 {isVideo ? (
                                   <video
-                                    src={img}
+                                    src={imageUrl}
                                     className="h-full w-full object-cover"
                                     muted
                                     playsInline
                                     preload="metadata"
                                   />
                                 ) : (
-                                  <img src={img} alt={event.title} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                                  <img src={imageUrl} alt={event.title} loading="lazy" decoding="async" className="h-full w-full object-cover" />
                                 )}
                                 {isVideo && (
-                                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                    <div className="w-10 h-10 rounded-full bg-black/50 flex items-center justify-center">
-                                      <Play size={20} className="text-white ml-0.5" />
+                                  <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black/50">
+                                      <Play size={20} className="ml-0.5 text-white" />
                                     </div>
                                   </div>
                                 )}
@@ -151,33 +141,28 @@ export const TimelineScreen: React.FC<TimelineScreenProps> = ({
                         </div>
                       )}
 
-                      {/* Content */}
-                      <div className="flex justify-between items-start px-1">
+                      <div className="flex items-start justify-between px-1">
                         <div>
-                          <h3 className="text-lg font-bold text-text-main mb-1">{event.title}</h3>
-                          <div className="flex items-center gap-1 text-text-sub text-sm">
-                            {event.title.includes('电影') ? <Film size={14} /> :
-                              event.title.includes('咖啡') ? <Store size={14} /> :
-                                event.title.includes('海边') ? <Waves size={14} /> : <MapPin size={14} />}
+                          <h3 className="mb-1 text-lg font-bold text-text-main">{event.title}</h3>
+                          <div className="flex items-center gap-1 text-sm text-text-sub">
+                            <MapPin size={14} />
                             <span>{event.location}</span>
                           </div>
                         </div>
                         <div className="flex flex-col items-end">
-                          <span className="text-2xl font-bold text-primary font-display">{event.date}</span>
-                          <span className="text-xs text-text-sub/60 font-medium">{event.dayOfWeek}</span>
+                          <span className="font-display text-2xl font-bold text-primary">{event.date}</span>
+                          <span className="text-xs font-medium text-text-sub/60">{event.dayOfWeek}</span>
                         </div>
                       </div>
 
-                      {/* Note */}
                       {event.note && (
-                        <div className="mt-3 pt-3 border-t border-gray-100">
-                          <p className="text-sm text-gray-600 line-clamp-1">{event.note}</p>
+                        <div className="mt-3 border-t border-gray-100 pt-3">
+                          <p className="line-clamp-1 text-sm text-gray-600">{event.note}</p>
                         </div>
                       )}
 
-                      {/* Long press hint */}
                       <div className="mt-2 text-center">
-                        <span className="text-[10px] text-gray-300">长按可删除</span>
+                        <span className="text-[10px] text-gray-300">Long press to delete</span>
                       </div>
                     </div>
                   </div>
@@ -188,7 +173,6 @@ export const TimelineScreen: React.FC<TimelineScreenProps> = ({
         })}
       </div>
 
-      {/* Detail Modal */}
       {viewingEvent && (
         <EventDetailModal
           isOpen={!!viewingEvent}
@@ -198,14 +182,12 @@ export const TimelineScreen: React.FC<TimelineScreenProps> = ({
           onDelete={onDeleteEvent}
           onUpdate={onUpdateEvent}
           onDeleteImage={async (imageUrl) => {
-            // Update event to remove the image
-            const updatedImages = viewingEvent.images.filter(img => img !== imageUrl);
+            const updatedImages = viewingEvent.images.filter(currentImage => currentImage !== imageUrl);
             await onUpdateEvent(viewingEvent.id, { images: updatedImages });
             if (onDeleteImageSync) {
               await onDeleteImageSync(imageUrl);
             }
-            // Update local state
-            setViewingEvent(prev => prev ? { ...prev, images: updatedImages } : null);
+            setViewingEvent(prev => (prev ? { ...prev, images: updatedImages } : null));
           }}
         />
       )}
