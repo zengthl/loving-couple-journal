@@ -27,10 +27,10 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeScreen, onNaviga
         <div className="sticky top-0 z-40 flex items-center justify-between border-b border-gray-100 bg-white/95 px-4 py-2 backdrop-blur-md">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm">
-              <span>{isGuest ? 'G' : 'U'}</span>
+              <span>{isGuest ? '游' : '爱'}</span>
             </div>
             {isGuest ? (
-              <span className="rounded-full bg-amber-50 px-2 py-0.5 text-sm font-medium text-amber-600">Guest mode</span>
+              <span className="rounded-full bg-amber-50 px-2 py-0.5 text-sm font-medium text-amber-600">游客模式</span>
             ) : (
               <span className="max-w-[200px] truncate text-sm font-medium text-text-sub">{user?.email}</span>
             )}
@@ -42,7 +42,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeScreen, onNaviga
               className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-text-sub transition-colors hover:bg-gray-50 hover:text-primary"
             >
               <LogOut size={14} />
-              {isGuest ? 'Exit' : 'Logout'}
+              {isGuest ? '退出浏览' : '退出登录'}
             </button>
           )}
         </div>
@@ -59,7 +59,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeScreen, onNaviga
             className={`flex flex-col items-center gap-1 transition-colors duration-300 ${activeScreen === ScreenName.TIMELINE ? 'text-primary' : 'text-text-sub hover:text-primary'}`}
           >
             <Home className="h-6 w-6" strokeWidth={activeScreen === ScreenName.TIMELINE ? 2.5 : 2} />
-            <span className="text-[10px] font-medium">Home</span>
+            <span className="text-[10px] font-medium">首页</span>
           </button>
 
           <button
@@ -67,7 +67,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeScreen, onNaviga
             className={`flex flex-col items-center gap-1 transition-colors duration-300 ${activeScreen === ScreenName.DISCOVERY ? 'text-primary' : 'text-text-sub hover:text-primary'}`}
           >
             <Compass className="h-6 w-6" strokeWidth={activeScreen === ScreenName.DISCOVERY ? 2.5 : 2} />
-            <span className="text-[10px] font-medium">Discover</span>
+            <span className="text-[10px] font-medium">发现</span>
           </button>
 
           <div className="relative -top-5">
@@ -84,7 +84,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeScreen, onNaviga
             className={`flex flex-col items-center gap-1 transition-colors duration-300 ${activeScreen === ScreenName.MAP ? 'text-primary' : 'text-text-sub hover:text-primary'}`}
           >
             <Map className="h-6 w-6" strokeWidth={activeScreen === ScreenName.MAP ? 2.5 : 2} />
-            <span className="text-[10px] font-medium">Map</span>
+            <span className="text-[10px] font-medium">足迹</span>
           </button>
 
           <button
@@ -92,7 +92,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeScreen, onNaviga
             className={`flex flex-col items-center gap-1 transition-colors duration-300 ${activeScreen === ScreenName.ANNIVERSARY ? 'text-primary' : 'text-text-sub hover:text-primary'}`}
           >
             <CalendarHeart className="h-6 w-6" strokeWidth={activeScreen === ScreenName.ANNIVERSARY ? 2.5 : 2} />
-            <span className="text-[10px] font-medium">Dates</span>
+            <span className="text-[10px] font-medium">纪念日</span>
           </button>
         </nav>
       )}

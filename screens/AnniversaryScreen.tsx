@@ -15,9 +15,9 @@ const createDate = (value: string) => new Date(`${value}T00:00:00`);
 
 const formatAnniversaryDate = (value: string) => {
   if (!value) {
-    return 'Choose a date';
+    return '请选择日期';
   }
-  return new Intl.DateTimeFormat('en', {
+  return new Intl.DateTimeFormat('zh-CN', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -48,7 +48,7 @@ export const AnniversaryScreen: React.FC<AnniversaryScreenProps> = ({
   const [newLocation, setNewLocation] = useState('');
   const [newImage, setNewImage] = useState('');
 
-  const mainAnniversary = anniversaries[0] || { title: 'We are together', date: '2025-03-23' };
+  const mainAnniversary = anniversaries[0] || { title: '我们在一起', date: '2025-03-23' };
   const daysTogether = calculateDays(mainAnniversary.date);
 
   const handleSubmit = () => {
@@ -82,7 +82,7 @@ export const AnniversaryScreen: React.FC<AnniversaryScreenProps> = ({
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm">
           <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl animate-scale-up">
             <div className="mb-6 flex items-center justify-between">
-              <h3 className="text-xl font-bold text-text-main">Add anniversary</h3>
+              <h3 className="text-xl font-bold text-text-main">添加纪念日</h3>
               <button
                 onClick={() => setShowAddModal(false)}
                 className="rounded-full p-1 hover:bg-gray-100"
@@ -116,40 +116,40 @@ export const AnniversaryScreen: React.FC<AnniversaryScreenProps> = ({
                   >
                     <div className="flex h-32 w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 text-gray-400 transition-all hover:border-primary/50 hover:bg-primary/5 hover:text-primary">
                       <Camera size={24} />
-                      <span className="text-xs font-medium">Add photo</span>
+                      <span className="text-xs font-medium">添加照片</span>
                     </div>
                   </ImageUploader>
                 )}
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-gray-400">Title</label>
+                <label className="text-xs font-bold uppercase tracking-wider text-gray-400">标题</label>
                 <div className="flex items-center gap-3 rounded-xl border border-transparent bg-gray-50 p-3 transition-all focus-within:border-primary/50 focus-within:bg-white">
                   <Heart size={18} className="text-primary" />
                   <input
                     value={newTitle}
                     onChange={(event) => setNewTitle(event.target.value)}
-                    placeholder="First date, proposal, trip..."
+                    placeholder="例如：第一次约会"
                     className="flex-1 border-none bg-transparent p-0 text-sm font-medium text-text-main placeholder:text-gray-400 focus:ring-0"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-gray-400">Location</label>
+                <label className="text-xs font-bold uppercase tracking-wider text-gray-400">地点</label>
                 <div className="flex items-center gap-3 rounded-xl border border-transparent bg-gray-50 p-3 transition-all focus-within:border-primary/50 focus-within:bg-white">
                   <MapPin size={18} className="text-primary" />
                   <input
                     value={newLocation}
                     onChange={(event) => setNewLocation(event.target.value)}
-                    placeholder="City or place"
+                    placeholder="例如：上海"
                     className="flex-1 border-none bg-transparent p-0 text-sm font-medium text-text-main placeholder:text-gray-400 focus:ring-0"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-gray-400">Date</label>
+                <label className="text-xs font-bold uppercase tracking-wider text-gray-400">日期</label>
                 <div className="flex items-center gap-3 rounded-xl border border-transparent bg-gray-50 p-3 transition-all focus-within:border-primary/50 focus-within:bg-white">
                   <Calendar size={18} className="text-primary" />
                   <input
@@ -166,7 +166,7 @@ export const AnniversaryScreen: React.FC<AnniversaryScreenProps> = ({
                 disabled={!newTitle || !newDate}
                 className={`mt-4 w-full rounded-xl py-3.5 font-bold text-white transition-all active:scale-[0.98] ${newTitle && newDate ? 'bg-primary shadow-lg shadow-primary/30' : 'cursor-not-allowed bg-gray-300 shadow-none'}`}
               >
-                Save anniversary
+                确认添加
               </button>
             </div>
           </div>
@@ -177,7 +177,7 @@ export const AnniversaryScreen: React.FC<AnniversaryScreenProps> = ({
         <div className="flex w-full animate-slide-up flex-col items-center gap-2 text-center">
           <div className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-primary">
             <Heart size={12} fill="currentColor" />
-            {daysTogether} Days Together
+            在一起 {daysTogether} 天
           </div>
           <h1 className="mt-2 text-[32px] font-extrabold leading-tight tracking-tight text-[#4A3434] md:text-[36px]">
             {formatAnniversaryDate(mainAnniversary.date)}
@@ -191,7 +191,7 @@ export const AnniversaryScreen: React.FC<AnniversaryScreenProps> = ({
             className="inline-flex items-center gap-2 rounded-full border border-stone-100 bg-white px-4 py-2 text-sm font-medium text-text-main shadow-sm transition hover:shadow-md"
           >
             <MapPin size={14} className="text-primary" />
-            Open travel map
+            打开旅行地图
           </button>
         </div>
 
@@ -226,7 +226,7 @@ export const AnniversaryScreen: React.FC<AnniversaryScreenProps> = ({
 
                 <div className="flex-shrink-0 pl-2 text-right">
                   <span className="text-lg font-bold text-primary">{calculateDays(anniversary.date)}</span>
-                  <span className="ml-1 text-xs text-text-sub">days</span>
+                  <span className="ml-1 text-xs text-text-sub">天</span>
                 </div>
               </div>
             ))}

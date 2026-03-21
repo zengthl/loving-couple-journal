@@ -41,7 +41,7 @@ export const TimelineScreen: React.FC<TimelineScreenProps> = ({
       if (navigator.vibrate) {
         navigator.vibrate(50);
       }
-      if (window.confirm(`Delete "${event.title}"?`)) {
+      if (window.confirm(`确定要删除“${event.title}”吗？`)) {
         void onDeleteEvent(event.id);
       }
     }, 500);
@@ -67,10 +67,10 @@ export const TimelineScreen: React.FC<TimelineScreenProps> = ({
         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
           <Heart size={18} fill="currentColor" />
         </div>
-        <h1 className="text-xl font-bold tracking-tight text-text-main">Our Timeline</h1>
+        <h1 className="text-xl font-bold tracking-tight text-text-main">恋爱足迹</h1>
         <div className="flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5">
           <Lock size={12} className="fill-primary text-primary" />
-          <span className="text-xs font-bold tracking-wide text-text-sub">{isGuest ? 'Guest view' : 'Private'}</span>
+          <span className="text-xs font-bold tracking-wide text-text-sub">{isGuest ? '游客浏览' : '仅你们可见'}</span>
         </div>
       </header>
 
@@ -162,7 +162,7 @@ export const TimelineScreen: React.FC<TimelineScreenProps> = ({
                       )}
 
                       <div className="mt-2 text-center">
-                        <span className="text-[10px] text-gray-300">Long press to delete</span>
+                        <span className="text-[10px] text-gray-300">长按可删除</span>
                       </div>
                     </div>
                   </div>
