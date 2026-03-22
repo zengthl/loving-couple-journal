@@ -18,6 +18,7 @@ const formatAnniversaryDate = (value: string) => {
   if (!value) {
     return '请选择日期';
   }
+
   return new Intl.DateTimeFormat('zh-CN', {
     year: 'numeric',
     month: 'long',
@@ -29,10 +30,12 @@ const calculateDays = (value: string) => {
   if (!value) {
     return 0;
   }
+
   const start = createDate(value);
   const today = new Date();
   const current = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const diff = current.getTime() - start.getTime();
+
   return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
 };
 
@@ -68,7 +71,10 @@ export const AnniversaryScreen: React.FC<AnniversaryScreenProps> = ({
   return (
     <div className="relative flex h-full flex-col bg-background-light">
       <div className="sticky top-0 z-40 flex items-center justify-between bg-background-light/80 p-4 backdrop-blur-md">
-        <button onClick={onBack} className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-text-main shadow-sm transition hover:scale-105 active:scale-95">
+        <button
+          onClick={onBack}
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-text-main shadow-sm transition hover:scale-105 active:scale-95"
+        >
           <ArrowLeft size={20} />
         </button>
         <button
@@ -84,10 +90,7 @@ export const AnniversaryScreen: React.FC<AnniversaryScreenProps> = ({
           <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl animate-scale-up">
             <div className="mb-6 flex items-center justify-between">
               <h3 className="text-xl font-bold text-text-main">添加纪念日</h3>
-              <button
-                onClick={() => setShowAddModal(false)}
-                className="rounded-full p-1 hover:bg-gray-100"
-              >
+              <button onClick={() => setShowAddModal(false)} className="rounded-full p-1 hover:bg-gray-100">
                 <X size={24} className="text-gray-400" />
               </button>
             </div>
@@ -197,40 +200,51 @@ export const AnniversaryScreen: React.FC<AnniversaryScreenProps> = ({
         </div>
 
         {anniversaries.length > 1 && (
-          <div className="w-full space-y-3">
-            {anniversaries.slice(1).map((anniversary) => (
-              <div key={anniversary.id} className="group flex items-center justify-between rounded-xl border border-stone-50 bg-white p-3 shadow-sm transition-all hover:shadow-md">
-                <div className="flex items-center gap-3 overflow-hidden">
-                  {anniversary.image ? (
-                    <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100">
-                      <OptimizedImage src={anniversary.image} alt={anniversary.title} variant="thumb" loading="lazy" decoding="async" className="h-full w-full object-cover" />
-                    </div>
-                  ) : (
-                    <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-pink-50 text-pink-500">
-                      <Calendar size={20} />
-                    </div>
-                  )}
+          <div className="w-full space-y-6">
+            {anniversaries.slice(1).map((anniversary, index) => {
+              const tiltClass = index % 2 === 0 ? '-rotate-[1.2deg]' : 'rotate-[1.2deg]';
 
-                  <div className="min-w-0">
-                    <h4 className="truncate text-sm font-bold text-text-main">{anniversary.title}</h4>
-                    <div className="flex items-center gap-1 text-xs text-text-sub">
-                      <span>{anniversary.date}</span>
-                      {anniversary.location && (
-                        <>
-                          <span className="h-1 w-1 rounded-full bg-gray-300"></span>
-                          <span className="max-w-[80px] truncate">{anniversary.location}</span>
-                        </>
+              return (
+                <div key={anniversary.id} className={`transform transition-transform duration-500 ease-out hover:rotate-0 ${tiltClass}`}>
+                  <div className="rounded-[28px] border border-stone-100 bg-white p-4 pb-6 shadow-card">
+                    <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[20px] bg-stone-100">
+                      {anniversary.image ? (
+                        <OptimizedImage
+                          src={anniversary.image}
+                          alt={anniversary.title}
+                          variant="card"
+                          loading="lazy"
+                          decoding="async"
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-pink-50 to-orange-50 text-primary/60">
+                          <Calendar size={42} />
+                        </div>
                       )}
+
+                      <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/35 via-black/10 to-transparent"></div>
+                      <div className="absolute right-4 top-4 rounded-full bg-white/88 px-3 py-1 text-xs font-bold text-primary backdrop-blur-md">
+                        {calculateDays(anniversary.date)} 天
+                      </div>
+                    </div>
+
+                    <div className="mt-4 px-1">
+                      <h4 className="text-[22px] font-black leading-tight text-text-main">{anniversary.title}</h4>
+                      <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-text-sub">
+                        <span>{formatAnniversaryDate(anniversary.date)}</span>
+                        {anniversary.location && (
+                          <>
+                            <span className="h-1.5 w-1.5 rounded-full bg-primary/30"></span>
+                            <span>{anniversary.location}</span>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
-
-                <div className="flex-shrink-0 pl-2 text-right">
-                  <span className="text-lg font-bold text-primary">{calculateDays(anniversary.date)}</span>
-                  <span className="ml-1 text-xs text-text-sub">天</span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
