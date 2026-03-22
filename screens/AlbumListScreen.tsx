@@ -3,7 +3,7 @@ import { ArrowLeft, Image as ImageIcon, MapPin, Play, Download, CheckCircle, Loa
 import { Province, ProvinceVisit, CitySummary, AlbumViewMode } from '../types';
 import { ImageViewer } from '../components/ImageViewer';
 import { ImageUploader } from '../components/ImageUploader';
-import { fetchProvinceVisits, groupVisitsByCity, addPhotosToVisit, deletePhotoFromVisit, createVisit } from '../lib/db';
+import { fetchProvinceVisits, groupVisitsByCity, addPhotosToVisit, deletePhotoFromVisit, createVisit, deleteCityAlbum } from '../lib/db';
 import { CitySelectScreen } from './CitySelectScreen';
 import { CityTimelineScreen } from './CityTimelineScreen';
 import { OptimizedImage } from '../components/OptimizedImage';
@@ -91,6 +91,14 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({
 
   const visitedProvinces = provinces.filter(p => p.visited);
 
+  const refreshProvinceVisits = useCallback(async (provinceId: string) => {
+    const visits = await fetchProvinceVisits('', provinceId);
+    const summaries = groupVisitsByCity(visits);
+    setCityVisits(visits);
+    setCitySummaries(summaries);
+    return { visits, summaries };
+  }, []);
+
   // Handle province click - check if multiple cities exist
   const handleProvinceClick = useCallback(async (province: Province) => {
     setSelectedProvince(province);
@@ -142,6 +150,44 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({
       setViewMode(AlbumViewMode.PHOTO_GRID);
     }
   }, [citySummaries]);
+
+  const handleDeleteCityAlbum = useCallback(async (city: CitySummary): Promise<boolean> => {
+    if (!selectedProvince || isGuest) {
+      return false;
+    }
+
+    const deletedPhotoUrls = await deleteCityAlbum(
+      userId,
+      selectedProvince.id,
+      city.visits.map((visit) => visit.id)
+    );
+
+    if (deletedPhotoUrls === null) {
+      return false;
+    }
+
+    if (onDeletePhoto) {
+      for (const photoUrl of deletedPhotoUrls) {
+        await onDeletePhoto(photoUrl);
+      }
+    }
+
+    const { summaries } = await refreshProvinceVisits(selectedProvince.id);
+    onRefresh();
+
+    if (summaries.length === 0) {
+      setViewMode(AlbumViewMode.PROVINCE_LIST);
+      setSelectedProvince(null);
+      setSelectedCity(null);
+      return true;
+    }
+
+    if (!summaries.some((summary) => summary.cityName === city.cityName)) {
+      setSelectedCity(null);
+    }
+
+    return true;
+  }, [isGuest, onDeletePhoto, onRefresh, refreshProvinceVisits, selectedProvince, userId]);
 
   // Get photos for current view
   const getCurrentPhotos = useCallback((): string[] => {
@@ -303,11 +349,13 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({
         provinceName={selectedProvince.name}
         cities={citySummaries}
         onCitySelect={handleCityClick}
+        onDeleteCityAlbum={handleDeleteCityAlbum}
         onBack={() => {
           setViewMode(AlbumViewMode.PROVINCE_LIST);
           setSelectedProvince(null);
           setSelectedCity(null);
         }}
+        isGuest={isGuest}
       />
     );
   }

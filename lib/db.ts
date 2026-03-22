@@ -715,6 +715,49 @@ export async function deletePhotoFromVisit(visitId: string, photoUrl: string): P
     return true;
 }
 
+// Delete all visits that belong to the same city album
+export async function deleteCityAlbum(
+    userId: string,
+    provinceId: string,
+    visitIds: string[]
+): Promise<string[] | null> {
+    if (visitIds.length === 0) {
+        return [];
+    }
+
+    const { data: visits, error: fetchError } = await supabase
+        .from('user_province_visits')
+        .select('id, photos')
+        .eq('user_id', userId)
+        .eq('province_id', provinceId)
+        .in('id', visitIds);
+
+    if (fetchError || !visits) {
+        console.error('Error fetching city album visits:', fetchError);
+        return null;
+    }
+
+    const photoUrls = Array.from(
+        new Set(
+            visits.flatMap((visit) => visit.photos || [])
+        )
+    );
+
+    const { error: deleteError } = await supabase
+        .from('user_province_visits')
+        .delete()
+        .eq('user_id', userId)
+        .eq('province_id', provinceId)
+        .in('id', visitIds);
+
+    if (deleteError) {
+        console.error('Error deleting city album:', deleteError);
+        return null;
+    }
+
+    return photoUrls;
+}
+
 // Create a new visit entry
 export async function createVisit(
     userId: string,

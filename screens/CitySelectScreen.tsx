@@ -1,5 +1,5 @@
-import React from 'react';
-import { ArrowLeft, MapPin } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { ArrowLeft, MapPin, Trash2, X } from 'lucide-react';
 import { CitySummary } from '../types';
 import { OptimizedImage } from '../components/OptimizedImage';
 
@@ -7,15 +7,60 @@ interface CitySelectScreenProps {
   provinceName: string;
   cities: CitySummary[];
   onCitySelect: (cityName: string) => void;
+  onDeleteCityAlbum?: (city: CitySummary) => Promise<boolean>;
   onBack: () => void;
+  isGuest?: boolean;
 }
 
 export const CitySelectScreen: React.FC<CitySelectScreenProps> = ({
   provinceName,
   cities,
   onCitySelect,
-  onBack
+  onDeleteCityAlbum,
+  onBack,
+  isGuest
 }) => {
+  const [activeCity, setActiveCity] = useState<CitySummary | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const canDeleteAlbum = useMemo(
+    () => !isGuest && typeof onDeleteCityAlbum === 'function',
+    [isGuest, onDeleteCityAlbum]
+  );
+
+  const handleCityCardClick = (city: CitySummary) => {
+    if (canDeleteAlbum) {
+      setActiveCity(city);
+      return;
+    }
+
+    onCitySelect(city.cityName);
+  };
+
+  const handleDeleteAlbum = async () => {
+    if (!activeCity || !onDeleteCityAlbum) return;
+
+    const confirmed = window.confirm(
+      `确定删除“${activeCity.cityName}”相册吗？这会删除该城市下的 ${activeCity.totalPhotos} 张照片。`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const success = await onDeleteCityAlbum(activeCity);
+      if (success) {
+        setActiveCity(null);
+      } else {
+        alert('删除失败，请稍后再试');
+      }
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full bg-background-light">
       {/* Header */}
@@ -43,7 +88,7 @@ export const CitySelectScreen: React.FC<CitySelectScreenProps> = ({
           {cities.map((city) => (
             <button
               key={city.cityName}
-              onClick={() => onCitySelect(city.cityName)}
+              onClick={() => handleCityCardClick(city)}
               className="relative aspect-[3/4] rounded-2xl overflow-hidden group shadow-card hover:shadow-floating transition-all duration-300"
             >
               {/* Cover Photo */}
@@ -82,6 +127,58 @@ export const CitySelectScreen: React.FC<CitySelectScreenProps> = ({
           ))}
         </div>
       </div>
+
+      {activeCity && (
+        <div className="fixed inset-0 z-40 bg-black/35 flex items-end" onClick={() => !isDeleting && setActiveCity(null)}>
+          <div
+            className="w-full bg-white rounded-t-[28px] px-6 pt-5 pb-8 shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold tracking-[0.2em] text-primary/60">相册操作</p>
+                <h3 className="mt-2 text-2xl font-black text-text-main">{activeCity.cityName}</h3>
+                <p className="mt-2 text-sm text-text-sub">
+                  {activeCity.totalPhotos} 张照片
+                  {activeCity.visits.length > 1 ? ` · ${activeCity.visits.length} 次到访` : ''}
+                </p>
+              </div>
+              <button
+                onClick={() => setActiveCity(null)}
+                disabled={isDeleting}
+                className="w-10 h-10 rounded-full bg-gray-100 text-text-main flex items-center justify-center disabled:opacity-50"
+                aria-label="关闭"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="mt-6 grid gap-3">
+              <button
+                onClick={() => {
+                  onCitySelect(activeCity.cityName);
+                  setActiveCity(null);
+                }}
+                disabled={isDeleting}
+                className="w-full rounded-2xl bg-primary text-white py-4 text-base font-bold shadow-sm disabled:opacity-60"
+              >
+                查看相册
+              </button>
+
+              {canDeleteAlbum && (
+                <button
+                  onClick={handleDeleteAlbum}
+                  disabled={isDeleting}
+                  className="w-full rounded-2xl border border-red-200 bg-red-50 text-red-600 py-4 text-base font-bold flex items-center justify-center gap-2 disabled:opacity-60"
+                >
+                  <Trash2 size={18} />
+                  {isDeleting ? '删除中...' : '删除这个相册'}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
