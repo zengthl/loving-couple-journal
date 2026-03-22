@@ -21,9 +21,14 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeScreen, onNaviga
   ].includes(activeScreen);
 
   const showUserInfo = !!user && showBottomNav;
+  const isAppShell = !!user;
 
   return (
-    <div className="relative mx-auto flex h-full min-h-screen w-full max-w-md flex-col overflow-x-hidden bg-background-light shadow-2xl">
+    <div
+      className={`relative flex h-full min-h-screen w-full flex-col overflow-x-hidden ${
+        isAppShell ? 'mx-auto max-w-md bg-background-light shadow-2xl' : 'bg-[#09070d]'
+      }`}
+    >
       {showUserInfo && (
         <div className="sticky top-0 z-40 flex items-center justify-between border-b border-gray-100 bg-white/95 px-4 py-2 backdrop-blur-md">
           <div className="flex items-center gap-2">
@@ -49,7 +54,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeScreen, onNaviga
         </div>
       )}
 
-      <main className={`relative flex-1 overflow-y-auto no-scrollbar ${showBottomNav ? 'pb-24' : 'pb-0'}`}>
+      <main className={`relative flex-1 ${showBottomNav ? 'overflow-y-auto no-scrollbar pb-24' : 'overflow-hidden pb-0'}`}>
         {children}
       </main>
 

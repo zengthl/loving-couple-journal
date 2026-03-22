@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kinetic Love Letter - Welcome</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Manrope:wght@400;500;600&amp;family=Dancing+Script:wght@600&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-container-low": "#f8f2f5",
+              "on-tertiary-container": "#222b85",
+              "tertiary-container": "#acb3ff",
+              "on-secondary-fixed": "#453a58",
+              "on-primary-fixed-variant": "#850d59",
+              "tertiary-fixed-dim": "#9ba4ff",
+              "surface": "#fef8fb",
+              "on-error-container": "#68001f",
+              "on-surface-variant": "#625e62",
+              "error-dim": "#770326",
+              "surface-variant": "#e7e0e6",
+              "outline-variant": "#b6b0b5",
+              "secondary-dim": "#594e6d",
+              "primary": "#a62f75",
+              "error": "#ac3149",
+              "surface-tint": "#a62f75",
+              "on-background": "#343136",
+              "surface-bright": "#fef8fb",
+              "primary-container": "#ffa6d0",
+              "primary-fixed": "#ffa6d0",
+              "surface-container-lowest": "#ffffff",
+              "inverse-surface": "#0f0e10",
+              "tertiary-fixed": "#acb3ff",
+              "secondary-container": "#ebdcff",
+              "on-tertiary-fixed": "#040d70",
+              "inverse-primary": "#fb74bc",
+              "surface-container": "#f2ecf0",
+              "on-primary": "#fff7f8",
+              "primary-dim": "#972168",
+              "primary-fixed-dim": "#ff8fc7",
+              "on-tertiary": "#fbf8ff",
+              "on-primary-container": "#780050",
+              "error-container": "#f76a80",
+              "secondary": "#66597a",
+              "on-primary-fixed": "#530036",
+              "on-secondary": "#fef7ff",
+              "secondary-fixed": "#ebdcff",
+              "on-secondary-container": "#584c6c",
+              "on-surface": "#343136",
+              "background": "#fef8fb",
+              "on-tertiary-fixed-variant": "#2c358e",
+              "on-secondary-fixed-variant": "#625676",
+              "surface-container-high": "#ede6eb",
+              "secondary-fixed-dim": "#decef4",
+              "tertiary-dim": "#414aa3",
+              "inverse-on-surface": "#a09c9e",
+              "on-error": "#fff7f7",
+              "outline": "#7e797e",
+              "surface-dim": "#dfd8de",
+              "surface-container-highest": "#e7e0e6",
+              "tertiary": "#4d56b0"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans", "sans-serif"],
+              "body": ["Manrope", "sans-serif"],
+              "label": ["Manrope", "sans-serif"],
+              "script": ["Dancing Script", "cursive"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        /* Subtle Vignette */
+        .vignette-bottom {
+            background: linear-gradient(to top, rgba(15, 14, 16, 0.7) 0%, rgba(15, 14, 16, 0) 40%);
+        }
+
+        /* Glassmorphism Effect */
+        .glass-panel {
+            background: rgba(254, 248, 251, 0.15);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-button {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Subtle Sparkle Animation */
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0) scale(1); opacity: 0.3; }
+            50% { transform: translateY(-20px) translateX(10px) scale(1.2); opacity: 0.7; }
+        }
+
+        .particle {
+            animation: float 6s ease-in-out infinite;
+        }
+        .particle-delay-1 { animation-delay: 1s; }
+        .particle-delay-2 { animation-delay: 2.5s; }
+        .particle-delay-3 { animation-delay: 4s; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 1s ease-out forwards;
+        }
+    </style>
+<style>
+        body {
+          min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body min-h-screen overflow-hidden relative">
+<!-- Full Screen Background Image -->
+<div class="absolute inset-0 z-0">
+<img alt="Romantic sunset view" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/ADBb0ui2-U_QfcBkz7xxYFx6S1CQ0bcjK_iEBdhuDEe8HmlXJ9eURsoqRfgTjesYiHhL7A_-kL54zzwgDM6xVSk1EGUth2yKHuinXX4drJ8gQDayYjA2CssJjJaKpUN1VoJRD36FZYI2j0fgxK1aAx2rjIntA7GrbaKpqiodLoOJjsFZXIqrH_pXCUxy15WurTaMn6iQEzVo7mN9ZkBjCD2s2-R8qk3atXtTWeVhiMM-vyeNptUcAcIFzLW7_Su_rnfaXLBTa2Dmoz_4QA"/>
+<!-- Overlay for readability -->
+<div class="absolute inset-0 bg-inverse-surface/20"></div>
+<!-- Bottom Vignette -->
+<div class="absolute inset-0 vignette-bottom"></div>
+</div>
+<!-- Decorative Particle Layer -->
+<div class="absolute inset-0 z-1 pointer-events-none overflow-hidden">
+<span class="material-symbols-outlined absolute text-primary-container/40 particle particle-delay-1 text-2xl" style="top: 20%; left: 15%;">favorite</span>
+<span class="material-symbols-outlined absolute text-tertiary-container/30 particle particle-delay-2 text-xl" style="top: 60%; left: 80%;">colors_spark</span>
+<span class="material-symbols-outlined absolute text-primary-fixed-dim/40 particle particle-delay-3 text-lg" style="top: 40%; left: 85%;">favorite</span>
+<span class="material-symbols-outlined absolute text-surface/20 particle particle-delay-1 text-3xl" style="top: 75%; left: 10%;">blur_on</span>
+</div>
+<!-- Main Content Shell -->
+<main class="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 text-center">
+<div class="max-w-3xl space-y-12 animate-fade-in">
+<!-- Welcome Section -->
+<div class="space-y-4">
+<h1 class="font-script text-6xl md:text-8xl text-surface-container-lowest drop-shadow-2xl">
+                    Our Forever Begins Here
+                </h1>
+<p class="font-body text-lg md:text-2xl text-surface-container-lowest/90 font-light tracking-wide max-w-xl mx-auto drop-shadow-lg">
+                    A quiet space for our loudest laughs and softest whispers.
+                </p>
+</div>
+<!-- Login/Registration Actions -->
+<div class="flex flex-col items-center gap-6 pt-4">
+<div class="flex flex-wrap justify-center gap-4">
+<!-- Account Login (Primary Action) -->
+<button class="px-10 py-4 bg-primary text-on-primary font-label text-sm uppercase tracking-widest font-bold rounded-full shadow-lg hover:bg-primary-dim transition-all duration-300 active:scale-95 flex items-center gap-2">
+<span class="material-symbols-outlined text-xl">login</span>
+                        账号登录
+                    </button>
+<!-- Register (Primary Action - Variant) -->
+<button class="px-10 py-4 glass-button text-surface-container-lowest font-label text-sm uppercase tracking-widest font-bold rounded-full shadow-lg hover:bg-white/20 transition-all duration-300 active:scale-95 flex items-center gap-2">
+<span class="material-symbols-outlined text-xl">person_add</span>
+                        注册
+                    </button>
+</div>
+<!-- Guest Login (Secondary Action) -->
+<button class="text-surface-container-lowest/80 hover:text-white font-label text-sm uppercase tracking-widest font-medium transition-colors duration-300 flex items-center gap-2">
+                    访客登录
+                    <span class="material-symbols-outlined text-lg">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Floating Signature Element (Memory Bubble) -->
+<div class="absolute bottom-32 left-8 md:left-24 glass-panel p-6 rounded-xl hidden md:block max-w-[240px] shadow-2xl animate-bounce-slow">
+<div class="flex items-start gap-4">
+<div class="w-12 h-12 rounded-full bg-primary-container/30 flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined">auto_awesome</span>
+</div>
+<div class="text-left space-y-1">
+<span class="block text-[10px] uppercase tracking-tighter text-surface-container-lowest/60 font-bold">New Memory</span>
+<p class="text-surface-container-lowest text-sm font-medium leading-snug">The way you looked at the horizon tonight.</p>
+</div>
+</div>
+</div>
+</main>
+<!-- Shared Footer Component -->
+<footer class="fixed bottom-0 w-full bg-transparent text-white/70 font-['Plus_Jakarta_Sans'] text-xs md:text-sm tracking-wide z-20">
+<div class="flex flex-col md:flex-row justify-between items-center px-6 md:px-12 py-6 md:py-8 w-full gap-4">
+<!-- Brand Identity -->
+<div class="font-bold text-white">
+                Kinetic Love Letter
+            </div>
+<!-- Navigation items -->
+<div class="flex gap-6">
+<a class="hover:text-white transition-colors duration-300" href="#">Our Story</a>
+<a class="hover:text-white transition-colors duration-300" href="#">Privacy</a>
+<a class="hover:text-white transition-colors duration-300" href="#">Terms</a>
+</div>
+<!-- Copyright -->
+<div class="font-light">
+                © 2024 Kinetic Love Letter. All rights reserved.
+            </div>
+</div>
+</footer>
+</body></html>
