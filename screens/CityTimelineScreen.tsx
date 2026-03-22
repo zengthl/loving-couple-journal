@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Calendar, Plus, Trash2, Download } from 'lucide-react';
 import { ProvinceVisit } from '../types';
+import { OptimizedImage } from '../components/OptimizedImage';
 
 interface CityTimelineScreenProps {
   cityName: string;
@@ -133,9 +134,10 @@ export const CityTimelineScreen: React.FC<CityTimelineScreenProps> = ({
                       }
                     }}
                   >
-                    <img
+                    <OptimizedImage
                       src={photo}
                       alt={`Photo ${idx + 1}`}
+                      variant="thumb"
                       loading="lazy"
                       decoding="async"
                       className="w-full h-full object-cover"

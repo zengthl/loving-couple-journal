@@ -6,6 +6,8 @@ import { ImageUploader } from '../components/ImageUploader';
 import { fetchProvinceVisits, groupVisitsByCity, addPhotosToVisit, deletePhotoFromVisit, createVisit } from '../lib/db';
 import { CitySelectScreen } from './CitySelectScreen';
 import { CityTimelineScreen } from './CityTimelineScreen';
+import { OptimizedImage } from '../components/OptimizedImage';
+import { isVideoUrl } from '../lib/media';
 
 interface AlbumListScreenProps {
   provinces: Province[];
@@ -15,13 +17,6 @@ interface AlbumListScreenProps {
   onDeletePhoto?: (photoUrl: string) => Promise<void>;
   isGuest?: boolean;
 }
-
-// Helper to check if URL is a video
-const isVideoUrl = (url: string): boolean => {
-  const videoExtensions = ['.mp4', '.mov', '.webm', '.avi', '.m4v'];
-  const lowerUrl = url.toLowerCase();
-  return videoExtensions.some(ext => lowerUrl.includes(ext));
-};
 
 const LIVE_PHOTO_MAX_SECONDS = 4.5;
 const LIVE_PHOTO_PRESS_DELAY_MS = 200;
@@ -514,7 +509,7 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({
                               onLoadedMetadata={(e) => updateLivePhotoStatus(photo, e.currentTarget.duration)}
                             />
                           ) : (
-                            <img src={photo} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                            <OptimizedImage src={photo} alt="" variant="thumb" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                           )}
 
                           {isLivePhoto && (
@@ -640,7 +635,7 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({
                     isFirstPhotoVideo ? (
                       <video src={firstPhoto} className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500" muted playsInline />
                     ) : (
-                      <img src={firstPhoto} alt={province.name} loading="lazy" decoding="async" className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500" />
+                      <OptimizedImage src={firstPhoto} alt={province.name} variant="card" loading="lazy" decoding="async" className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500" />
                     )
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-300">

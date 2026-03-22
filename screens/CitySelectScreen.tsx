@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowLeft, MapPin } from 'lucide-react';
 import { CitySummary } from '../types';
+import { OptimizedImage } from '../components/OptimizedImage';
 
 interface CitySelectScreenProps {
   provinceName: string;
@@ -47,9 +48,10 @@ export const CitySelectScreen: React.FC<CitySelectScreenProps> = ({
             >
               {/* Cover Photo */}
               {city.coverPhoto ? (
-                <img
+                <OptimizedImage
                   src={city.coverPhoto}
                   alt={city.cityName}
+                  variant="card"
                   loading="lazy"
                   decoding="async"
                   className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"

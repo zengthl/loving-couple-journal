@@ -2,6 +2,8 @@ import React, { useRef, useState } from 'react';
 import { Lock, Heart, MapPin, Play } from 'lucide-react';
 import { TimelineEvent } from '../types';
 import { EventDetailModal } from '../components/EventDetailModal';
+import { OptimizedImage } from '../components/OptimizedImage';
+import { isVideoUrl } from '../lib/media';
 
 interface TimelineScreenProps {
   events: TimelineEvent[];
@@ -11,12 +13,6 @@ interface TimelineScreenProps {
   onDeleteImageSync?: (imageUrl: string) => Promise<void>;
   isGuest?: boolean;
 }
-
-const isVideoUrl = (url: string): boolean => {
-  const videoExtensions = ['.mp4', '.mov', '.webm', '.avi', '.m4v'];
-  const lowerUrl = url.toLowerCase();
-  return videoExtensions.some(ext => lowerUrl.includes(ext));
-};
 
 export const TimelineScreen: React.FC<TimelineScreenProps> = ({
   events,
@@ -91,7 +87,7 @@ export const TimelineScreen: React.FC<TimelineScreenProps> = ({
               </div>
 
               <div className="relative ml-2 space-y-8 border-l-2 border-primary/20 pl-4">
-                {monthEvents.map((event) => (
+                {monthEvents.map((event, eventIndex) => (
                   <div key={event.id} className="group relative pl-6">
                     {event.isSpecial ? (
                       <div className="absolute -left-[11px] top-4 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-white shadow-sm">
@@ -126,8 +122,17 @@ export const TimelineScreen: React.FC<TimelineScreenProps> = ({
                                     preload="metadata"
                                   />
                                 ) : (
-                                  <img src={imageUrl} alt={event.title} loading="lazy" decoding="async" className="h-full w-full object-cover" />
-                                )}
+                                  <OptimizedImage
+                                    src={imageUrl}
+                                    alt={event.title}
+                                    variant="card"
+                                    loading={eventIndex === 0 && index === 0 ? 'eager' : 'lazy'}
+                                    fetchPriority={eventIndex === 0 && index === 0 ? 'high' : 'auto'}
+                                    decoding="async"
+                                    className="h-full w-full object-cover"
+                                  />
+                                )
+                                }
                                 {isVideo && (
                                   <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
                                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black/50">

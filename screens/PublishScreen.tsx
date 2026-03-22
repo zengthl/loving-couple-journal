@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft, MapPin, Upload, Camera, Utensils, ShoppingBag, Store, PartyPopper, X } from 'lucide-react';
 import { DiscoveryType, DiscoveryItem } from '../types';
-import { uploadMultipleImages, compressImage } from '../lib/storage';
+import { uploadMultipleImages } from '../lib/storage';
 
 interface PublishScreenProps {
     onBack: () => void;
@@ -56,12 +56,7 @@ export const PublishScreen: React.FC<PublishScreenProps> = ({ onBack, onPublish,
         setUploading(true);
 
         try {
-            // Compress and upload images
-            const compressedFiles = await Promise.all(
-                selectedFiles.map(file => compressImage(file, 1200, 0.85))
-            );
-
-            const results = await uploadMultipleImages(compressedFiles, userId, 'discovery');
+            const results = await uploadMultipleImages(selectedFiles, userId, 'discovery');
             const urls = results.map(r => r.url);
 
             onPublish({

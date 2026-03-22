@@ -16,13 +16,23 @@ import {
 
 const GUEST_USER_ID = 'guest-visitor';
 
+interface HookOptions {
+    enabled?: boolean;
+}
+
 // ==================== useTimelineEvents ====================
-export function useTimelineEvents(userId: string | undefined) {
+export function useTimelineEvents(userId: string | undefined, options: HookOptions = {}) {
+    const { enabled = true } = options;
     const [events, setEvents] = useState<TimelineEvent[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
 
     const load = useCallback(async () => {
+        if (!enabled) {
+            setLoading(false);
+            return;
+        }
+
         setLoading(true);
         try {
             const data = await fetchTimelineEvents();
@@ -33,11 +43,16 @@ export function useTimelineEvents(userId: string | undefined) {
         } finally {
             setLoading(false);
         }
-    }, [userId]);
+    }, [enabled, userId]);
 
     useEffect(() => {
-        load();
-    }, [load]);
+        if (!enabled) {
+            setLoading(false);
+            return;
+        }
+
+        void load();
+    }, [enabled, load]);
 
     const addEvent = useCallback(async (event: Omit<TimelineEvent, 'id'>) => {
         if (!userId || userId === GUEST_USER_ID) return null;
@@ -54,12 +69,18 @@ export function useTimelineEvents(userId: string | undefined) {
 }
 
 // ==================== useProvinces ====================
-export function useProvinces(userId: string | undefined) {
+export function useProvinces(userId: string | undefined, options: HookOptions = {}) {
+    const { enabled = true } = options;
     const [provinces, setProvinces] = useState<Province[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
 
     const load = useCallback(async () => {
+        if (!enabled) {
+            setLoading(false);
+            return;
+        }
+
         setLoading(true);
         try {
             const baseProvinces = await fetchProvinces();
@@ -78,11 +99,16 @@ export function useProvinces(userId: string | undefined) {
         } finally {
             setLoading(false);
         }
-    }, [userId]);
+    }, [enabled, userId]);
 
     useEffect(() => {
-        load();
-    }, [load]);
+        if (!enabled) {
+            setLoading(false);
+            return;
+        }
+
+        void load();
+    }, [enabled, load]);
 
     const markVisited = useCallback(async (
         provinceId: string,
@@ -100,12 +126,18 @@ export function useProvinces(userId: string | undefined) {
 }
 
 // ==================== useDiscoveryItems ====================
-export function useDiscoveryItems(userId: string | undefined) {
+export function useDiscoveryItems(userId: string | undefined, options: HookOptions = {}) {
+    const { enabled = true } = options;
     const [items, setItems] = useState<DiscoveryItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
 
     const load = useCallback(async () => {
+        if (!enabled) {
+            setLoading(false);
+            return;
+        }
+
         if (!userId) {
             // No userId means not yet initialized, still loading
             setLoading(false);
@@ -124,11 +156,16 @@ export function useDiscoveryItems(userId: string | undefined) {
         } finally {
             setLoading(false);
         }
-    }, [userId]);
+    }, [enabled, userId]);
 
     useEffect(() => {
-        load();
-    }, [load]);
+        if (!enabled) {
+            setLoading(false);
+            return;
+        }
+
+        void load();
+    }, [enabled, load]);
 
     const addItem = useCallback(async (item: Omit<DiscoveryItem, 'id'>) => {
         if (!userId || userId === GUEST_USER_ID) return null;
@@ -145,12 +182,18 @@ export function useDiscoveryItems(userId: string | undefined) {
 }
 
 // ==================== useAnniversaries ====================
-export function useAnniversaries(userId: string | undefined) {
+export function useAnniversaries(userId: string | undefined, options: HookOptions = {}) {
+    const { enabled = true } = options;
     const [anniversaries, setAnniversaries] = useState<Anniversary[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
 
     const load = useCallback(async () => {
+        if (!enabled) {
+            setLoading(false);
+            return;
+        }
+
         if (!userId) {
             setLoading(false);
             return;
@@ -168,11 +211,16 @@ export function useAnniversaries(userId: string | undefined) {
         } finally {
             setLoading(false);
         }
-    }, [userId]);
+    }, [enabled, userId]);
 
     useEffect(() => {
-        load();
-    }, [load]);
+        if (!enabled) {
+            setLoading(false);
+            return;
+        }
+
+        void load();
+    }, [enabled, load]);
 
     const addAnniversary = useCallback(async (ann: Omit<Anniversary, 'id'>) => {
         if (!userId || userId === GUEST_USER_ID) return null;

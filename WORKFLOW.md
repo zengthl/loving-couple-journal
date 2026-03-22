@@ -23,6 +23,8 @@ npm run dev
 5. Commit only after verification passes.
 6. Push to `origin/main`.
 7. Verify the deployed site after push.
+8. For performance-sensitive changes, inspect the build output and confirm the homepage does not preload unrelated heavy chunks.
+9. After deployment, confirm hashed `/assets/*` responses use long-lived immutable cache headers.
 
 ## Database Flow
 
@@ -63,3 +65,5 @@ Codex MCP runtime:
 - Production validation is `npm run check`.
 - Standard completion means: local verification, git commit, git push, and a post-push check against the live site.
 - After pushing, confirm the latest change is visible on `zthldyq.top` or the active production domain before considering the task done.
+- If the change touches bundle loading, inspect `dist/index.html` and verify the production homepage no longer preloads deferred feature chunks such as map/chart bundles.
+- If the change touches static assets, verify the deployed `/assets/*` responses return `Cache-Control: public, max-age=31536000, immutable`.

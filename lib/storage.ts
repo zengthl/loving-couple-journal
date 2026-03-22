@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { getPreviewStoragePath } from './media';
 
 // 允许的图片类型（包括iPhone HEIC格式）
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif'];
@@ -10,8 +11,27 @@ const ALLOWED_FILE_TYPES = [...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES];
 export interface UploadResult {
     url: string;
     path: string;
+    previewUrl?: string;
     error?: string;
 }
+
+const STORAGE_CACHE_CONTROL = '31536000';
+
+const isImageFile = (file: File) => file.type.startsWith('image/');
+
+const getFileExtension = (file: File): string => {
+    const fileNameExtension = file.name.split('.').pop();
+    if (fileNameExtension) {
+        return fileNameExtension.toLowerCase();
+    }
+
+    if (file.type === 'image/jpeg') return 'jpg';
+    if (file.type === 'image/png') return 'png';
+    if (file.type === 'image/webp') return 'webp';
+    if (file.type === 'image/gif') return 'gif';
+    if (file.type === 'video/mp4') return 'mp4';
+    return 'bin';
+};
 
 /**
  * Upload a single image to Supabase Storage
@@ -37,7 +57,7 @@ export async function uploadImage(
     // 不再限制文件大小，允许上传任意大小的图片和视频
 
     // Generate unique filename
-    const fileExt = file.name.split('.').pop();
+    const fileExt = getFileExtension(file);
     const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
     const filePath = `${userId}/${folder}/${fileName}`;
 
@@ -46,7 +66,7 @@ export async function uploadImage(
         const { data, error } = await supabase.storage
             .from('user-images')
             .upload(filePath, file, {
-                cacheControl: '3600',
+                cacheControl: STORAGE_CACHE_CONTROL,
                 upsert: false
             });
 
@@ -59,6 +79,33 @@ export async function uploadImage(
             };
         }
 
+        let previewUrl: string | undefined;
+
+        if (isImageFile(file)) {
+            try {
+                const previewFile = await compressImage(file, 960, 0.78);
+                const previewPath = getPreviewStoragePath(filePath);
+
+                const { error: previewError } = await supabase.storage
+                    .from('user-images')
+                    .upload(previewPath, previewFile, {
+                        cacheControl: STORAGE_CACHE_CONTROL,
+                        upsert: true
+                    });
+
+                if (!previewError) {
+                    previewUrl = supabase.storage
+                        .from('user-images')
+                        .getPublicUrl(previewPath)
+                        .data.publicUrl;
+                } else {
+                    console.warn('Preview upload failed:', previewError);
+                }
+            } catch (previewError) {
+                console.warn('Preview generation failed:', previewError);
+            }
+        }
+
         // Get public URL
         const { data: { publicUrl } } = supabase.storage
             .from('user-images')
@@ -67,6 +114,7 @@ export async function uploadImage(
         return {
             url: publicUrl,
             path: filePath,
+            previewUrl,
         };
     } catch (error) {
         console.error('Upload exception:', error);

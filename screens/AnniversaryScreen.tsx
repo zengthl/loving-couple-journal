@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowLeft, Plus, Heart, Bookmark, MapPin, Calendar, X, Camera } from 'lucide-react';
 import { Anniversary } from '../types';
 import { ImageUploader } from '../components/ImageUploader';
+import { OptimizedImage } from '../components/OptimizedImage';
 
 interface AnniversaryScreenProps {
   onBack: () => void;
@@ -202,7 +203,7 @@ export const AnniversaryScreen: React.FC<AnniversaryScreenProps> = ({
                 <div className="flex items-center gap-3 overflow-hidden">
                   {anniversary.image ? (
                     <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100">
-                      <img src={anniversary.image} alt={anniversary.title} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                      <OptimizedImage src={anniversary.image} alt={anniversary.title} variant="thumb" loading="lazy" decoding="async" className="h-full w-full object-cover" />
                     </div>
                   ) : (
                     <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-pink-50 text-pink-500">
@@ -244,7 +245,8 @@ export const AnniversaryScreen: React.FC<AnniversaryScreenProps> = ({
                   <img
                     src="/assets/couple_cherry.jpg"
                     alt="Couple holding hands"
-                    loading="lazy"
+                    loading="eager"
+                    fetchPriority="high"
                     decoding="async"
                     className="h-full w-full object-cover transition-transform duration-700 hover:scale-105"
                   />
@@ -264,6 +266,7 @@ export const AnniversaryScreen: React.FC<AnniversaryScreenProps> = ({
                     src="/assets/heart_hands.jpg"
                     alt="Coffee moment"
                     loading="lazy"
+                    fetchPriority="low"
                     decoding="async"
                     className="h-full w-full object-cover transition-transform duration-700 hover:scale-105"
                   />

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Search, MapPin, Check } from 'lucide-react';
 import { DiscoveryItem, DiscoveryType } from '../types';
+import { OptimizedImage } from '../components/OptimizedImage';
 
 interface DiscoveryScreenProps {
   items: DiscoveryItem[];
@@ -72,9 +73,10 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({ items }) => {
               <div key={card.id} className="break-inside-avoid mb-4 group/card">
                 <div className="relative flex flex-col gap-3 rounded-2xl bg-white p-3 shadow-soft hover:shadow-floating transition-all duration-300">
                   <div className="relative w-full overflow-hidden rounded-xl">
-                    <img
+                    <OptimizedImage
                       src={card.image}
                       alt={card.title}
+                      variant="card"
                       loading="lazy"
                       decoding="async"
                       className="h-full w-full object-cover transition-transform duration-700 group-hover/card:scale-105"
@@ -112,4 +114,3 @@ export const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({ items }) => {
     </div>
   );
 };
-

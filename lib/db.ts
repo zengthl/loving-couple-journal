@@ -37,7 +37,8 @@ function toDbTimelineEvent(event: Omit<TimelineEvent, 'id'>): Omit<DbTimelineEve
 export async function fetchTimelineEvents(): Promise<TimelineEvent[]> {
     const { data, error } = await supabase
         .from('timeline_events')
-        .select('*');
+        .select('id, date, day_of_week, month, year, title, location, images, note, is_special, created_at')
+        .order('created_at', { ascending: false });
 
     if (error) {
         console.error('Error fetching timeline events:', error);
@@ -90,7 +91,7 @@ function toProvince(db: DbProvince): Province {
 export async function fetchProvinces(): Promise<Province[]> {
     const { data, error } = await supabase
         .from('provinces')
-        .select('*');
+        .select('id, name, en_name, position, visited, visit_date, photos');
 
     if (error) {
         console.error('Error fetching provinces:', error);
@@ -111,7 +112,7 @@ export async function markProvinceVisited(
     // First, check if user already visited this province with the same city
     let query = supabase
         .from('user_province_visits')
-        .select('*')
+        .select('photos, visit_date')
         .eq('user_id', userId)
         .eq('province_id', provinceId);
 
@@ -164,7 +165,10 @@ export async function markProvinceVisited(
 
 // Fetch user's province visits and merge with base province data
 export async function fetchProvincesWithUserVisits(userId: string, baseProvinces: Province[]): Promise<Province[]> {
-    let query = supabase.from('user_province_visits').select('*');
+    let query = supabase
+        .from('user_province_visits')
+        .select('province_id, visit_date, photos, city')
+        .order('visit_date', { ascending: false });
 
     // If userId is provided and not empty, filter by user; otherwise fetch all (guest mode)
     if (userId) {
@@ -249,7 +253,7 @@ function toDbDiscoveryItem(item: Omit<DiscoveryItem, 'id'>): Omit<DbDiscoveryIte
 export async function fetchDiscoveryItems(userId: string): Promise<DiscoveryItem[]> {
     const { data, error } = await supabase
         .from('discovery_items')
-        .select('*')
+        .select('id, image, title, location, type, date, checked, top_badge, created_at')
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
@@ -265,7 +269,7 @@ export async function fetchDiscoveryItems(userId: string): Promise<DiscoveryItem
 export async function fetchAllDiscoveryItems(): Promise<DiscoveryItem[]> {
     const { data, error } = await supabase
         .from('discovery_items')
-        .select('*')
+        .select('id, image, title, location, type, date, checked, top_badge, created_at')
         .order('created_at', { ascending: false });
 
     if (error) {
@@ -315,7 +319,7 @@ function toDbAnniversary(ann: Omit<Anniversary, 'id'>): Omit<DbAnniversary, 'id'
 export async function fetchAnniversaries(userId: string): Promise<Anniversary[]> {
     const { data, error } = await supabase
         .from('anniversaries')
-        .select('*')
+        .select('id, title, date, image, location, created_at')
         .eq('user_id', userId)
         .order('created_at', { ascending: true });
 
@@ -331,7 +335,7 @@ export async function fetchAnniversaries(userId: string): Promise<Anniversary[]>
 export async function fetchAllAnniversaries(): Promise<Anniversary[]> {
     const { data, error } = await supabase
         .from('anniversaries')
-        .select('*')
+        .select('id, title, date, image, location, created_at')
         .order('created_at', { ascending: true });
 
     if (error) {
@@ -583,7 +587,7 @@ function toProvinceVisit(db: DbProvinceVisit): ProvinceVisit {
 export async function fetchProvinceVisits(userId: string, provinceId: string): Promise<ProvinceVisit[]> {
     let query = supabase
         .from('user_province_visits')
-        .select('*')
+        .select('id, user_id, province_id, visit_date, photos, city, created_at')
         .eq('province_id', provinceId);
 
     if (userId) {

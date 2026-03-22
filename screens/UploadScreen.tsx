@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowLeft, MapPin, Calendar, X, ChevronRight, Check } from 'lucide-react';
 import { Province } from '../types';
 import { ImageUploader } from '../components/ImageUploader';
+import { OptimizedImage } from '../components/OptimizedImage';
 
 interface UploadScreenProps {
   provinces: Province[];
@@ -61,7 +62,7 @@ export const UploadScreen: React.FC<UploadScreenProps> = ({ provinces, onBack, o
             <div className="mt-4 grid grid-cols-3 gap-2">
               {photos.map((photo, idx) => (
                 <div key={idx} className="relative aspect-square rounded-xl overflow-hidden shadow-sm">
-                  <img src={photo} alt="Uploaded" loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                  <OptimizedImage src={photo} alt="Uploaded" variant="thumb" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                   <button
                     onClick={() => setPhotos(photos.filter((_, i) => i !== idx))}
                     className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1 hover:bg-black/70"
@@ -177,4 +178,3 @@ export const UploadScreen: React.FC<UploadScreenProps> = ({ provinces, onBack, o
     </div>
   );
 };
-

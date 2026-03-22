@@ -89,11 +89,16 @@ export default function App() {
     action();
   };
 
-  // Supabase hooks - guest mode fetches ALL data (no user filter), normal mode filters by user
-  const { events: timelineEvents, loading: timelineLoading, addEvent, reload: reloadTimeline } = useTimelineEvents(effectiveUserId);
-  const { provinces: dbProvinces, loading: provincesLoading, reload: reloadProvinces, markVisited } = useProvinces(effectiveUserId);
-  const { items: discoveryItems, loading: discoveryLoading, addItem } = useDiscoveryItems(effectiveUserId);
-  const { anniversaries, loading: anniversariesLoading, addAnniversary } = useAnniversaries(effectiveUserId);
+  const shouldLoadTimeline = isAuthenticated;
+  const shouldLoadTravel = isAuthenticated && [ScreenName.MAP, ScreenName.UPLOAD, ScreenName.ALBUM_LIST].includes(activeScreen);
+  const shouldLoadDiscovery = isAuthenticated && activeScreen === ScreenName.DISCOVERY;
+  const shouldLoadAnniversaries = isAuthenticated && activeScreen === ScreenName.ANNIVERSARY;
+
+  // Only fetch the data needed by the active route.
+  const { events: timelineEvents, loading: timelineLoading, addEvent, reload: reloadTimeline } = useTimelineEvents(effectiveUserId, { enabled: shouldLoadTimeline });
+  const { provinces: dbProvinces, loading: provincesLoading, reload: reloadProvinces, markVisited } = useProvinces(effectiveUserId, { enabled: shouldLoadTravel });
+  const { items: discoveryItems, loading: discoveryLoading, addItem } = useDiscoveryItems(effectiveUserId, { enabled: shouldLoadDiscovery });
+  const { anniversaries, loading: anniversariesLoading, addAnniversary } = useAnniversaries(effectiveUserId, { enabled: shouldLoadAnniversaries });
 
   // Handle delete/update timeline event
   const handleDeleteTimelineEvent = async (id: string) => {
@@ -121,9 +126,6 @@ export default function App() {
 
   // Use fallback provinces if DB is empty
   const provinces = dbProvinces.length > 0 ? dbProvinces : FALLBACK_PROVINCES;
-
-  // Loading state
-  const isLoading = authLoading || timelineLoading || provincesLoading || discoveryLoading || anniversariesLoading;
 
   // Handle logout
   const handleLogout = async () => {
@@ -222,8 +224,7 @@ export default function App() {
   );
 
   const renderScreen = () => {
-    // Show loading screen
-    if (isLoading) {
+    if (authLoading) {
       return <PageLoader />;
     }
 
@@ -245,12 +246,18 @@ export default function App() {
 
     switch (activeScreen) {
       case ScreenName.DISCOVERY:
+        if (discoveryLoading) {
+          return <PageLoader />;
+        }
         return (
           <Suspense fallback={<PageLoader />}>
             <DiscoveryScreen items={discoveryItems} />
           </Suspense>
         );
       case ScreenName.TIMELINE:
+        if (timelineLoading) {
+          return <PageLoader />;
+        }
         return (
           <Suspense fallback={<PageLoader />}>
             <TimelineScreen
@@ -264,6 +271,9 @@ export default function App() {
           </Suspense>
         );
       case ScreenName.ANNIVERSARY:
+        if (anniversariesLoading) {
+          return <PageLoader />;
+        }
         return (
           <Suspense fallback={<PageLoader />}>
             <AnniversaryScreen
@@ -276,6 +286,9 @@ export default function App() {
           </Suspense>
         );
       case ScreenName.MAP:
+        if (provincesLoading) {
+          return <PageLoader />;
+        }
         return (
           <Suspense fallback={<PageLoader />}>
             <MapScreen
@@ -297,6 +310,9 @@ export default function App() {
           </Suspense>
         );
       case ScreenName.UPLOAD:
+        if (provincesLoading) {
+          return <PageLoader />;
+        }
         return (
           <Suspense fallback={<PageLoader />}>
             <UploadScreen
@@ -308,6 +324,9 @@ export default function App() {
           </Suspense>
         );
       case ScreenName.ALBUM_LIST:
+        if (provincesLoading) {
+          return <PageLoader />;
+        }
         return (
           <Suspense fallback={<PageLoader />}>
             <AlbumListScreen
@@ -321,6 +340,9 @@ export default function App() {
           </Suspense>
         );
       default:
+        if (timelineLoading) {
+          return <PageLoader />;
+        }
         return (
           <Suspense fallback={<PageLoader />}>
             <TimelineScreen
