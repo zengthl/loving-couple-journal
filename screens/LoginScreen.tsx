@@ -1,15 +1,5 @@
 import React, { useState } from 'react';
-import {
-  ArrowRight,
-  Heart,
-  KeyRound,
-  Loader,
-  Lock,
-  LogIn,
-  Mail,
-  UserPlus,
-  X,
-} from 'lucide-react';
+import { ArrowRight, Heart, KeyRound, Loader2, Lock, Mail, Menu, UserPlus, X } from 'lucide-react';
 import { signIn, signUp } from '../lib/auth';
 
 interface LoginScreenProps {
@@ -22,8 +12,8 @@ type AuthMode = 'login' | 'register';
 const VALID_INVITE_CODE = '250323';
 
 export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onGuestLogin }) => {
-  const [authMode, setAuthMode] = useState<AuthMode>('login');
-  const [isAuthPanelOpen, setIsAuthPanelOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [mode, setMode] = useState<AuthMode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -37,21 +27,22 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onGues
     setSuccessMessage('');
   };
 
-  const handleStageClick = () => {
-    if (loading) return;
-
-    if (isAuthPanelOpen) {
-      setIsAuthPanelOpen(false);
-      return;
-    }
-
-    onGuestLogin();
+  const openPanel = (nextMode: AuthMode) => {
+    resetMessages();
+    setMode(nextMode);
+    setIsAuthOpen(true);
   };
 
-  const openAuthPanel = (mode: AuthMode) => {
+  const closePanel = () => {
+    setIsAuthOpen(false);
     resetMessages();
-    setAuthMode(mode);
-    setIsAuthPanelOpen(true);
+  };
+
+  const handleGuestEntry = () => {
+    if (loading || isAuthOpen) {
+      return;
+    }
+    onGuestLogin();
   };
 
   const handleLogin = async (event: React.FormEvent) => {
@@ -69,7 +60,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onGues
 
     if (user) {
       onLoginSuccess();
+      return;
     }
+
+    setLoading(false);
   };
 
   const handleRegister = async (event: React.FormEvent) => {
@@ -77,7 +71,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onGues
     resetMessages();
 
     if (inviteCode.trim() !== VALID_INVITE_CODE) {
-      setError('邀请码不正确');
+      setError('邀请码不正确，请确认后再试');
       return;
     }
 
@@ -96,235 +90,240 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onGues
     const { user, error: authError } = await signUp(email.trim(), password);
 
     if (authError) {
-      setError(authError.message.includes('already registered') ? '该邮箱已注册' : '注册失败，请稍后重试');
+      setError(authError.message.includes('already registered') ? '该邮箱已经注册过' : '注册失败，请稍后重试');
       setLoading(false);
       return;
     }
 
     if (user) {
-      setSuccessMessage('注册成功，请使用新账号登录');
-      setAuthMode('login');
-      setConfirmPassword('');
+      setMode('login');
+      setSuccessMessage('注册成功，请直接登录');
       setInviteCode('');
+      setConfirmPassword('');
     }
 
     setLoading(false);
   };
 
-  const renderAuthPanel = () => (
-    <div
-      className="absolute right-4 top-20 z-40 max-h-[calc(100svh-6rem)] w-[calc(100%-2rem)] max-w-[24rem] overflow-y-auto rounded-[28px] border border-white/20 bg-[rgba(16,14,32,0.54)] p-5 text-white shadow-[0_24px_80px_-24px_rgba(0,0,0,0.7)] backdrop-blur-2xl animate-slide-up"
-      onClick={(event) => event.stopPropagation()}
-    >
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-[11px] uppercase tracking-[0.3em] text-white/45">Private Entry</p>
-          <h2 className="mt-2 text-xl font-semibold text-white">
-            {authMode === 'login' ? '登录日记' : '创建账号'}
-          </h2>
-        </div>
-        <button
-          onClick={() => setIsAuthPanelOpen(false)}
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-white/12 bg-white/8 text-white/80 transition-colors hover:bg-white/12"
-          aria-label="关闭登录面板"
-        >
-          <X size={16} />
-        </button>
-      </div>
-
-      <div className="mt-5 grid grid-cols-2 gap-2 rounded-full border border-white/10 bg-white/6 p-1">
-        <button
-          onClick={() => {
-            resetMessages();
-            setAuthMode('login');
-          }}
-          className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${authMode === 'login' ? 'bg-white text-[#2a1836]' : 'text-white/60 hover:text-white'}`}
-        >
-          登录
-        </button>
-        <button
-          onClick={() => {
-            resetMessages();
-            setAuthMode('register');
-          }}
-          className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${authMode === 'register' ? 'bg-white text-[#2a1836]' : 'text-white/60 hover:text-white'}`}
-        >
-          注册
-        </button>
-      </div>
-
-      <form onSubmit={authMode === 'login' ? handleLogin : handleRegister} className="mt-5 space-y-3">
-        {error && (
-          <div className="rounded-2xl border border-red-300/25 bg-red-400/12 px-4 py-3 text-sm text-red-100">
-            {error}
-          </div>
-        )}
-
-        {successMessage && (
-          <div className="rounded-2xl border border-emerald-300/25 bg-emerald-400/12 px-4 py-3 text-sm text-emerald-100">
-            {successMessage}
-          </div>
-        )}
-
-        <label className="block">
-          <span className="mb-2 block text-xs uppercase tracking-[0.24em] text-white/45">Email</span>
-          <div className="flex items-center gap-3 rounded-2xl border border-white/12 bg-white/8 px-4 py-3">
-            <Mail size={18} className="text-white/45" />
-            <input
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="your@email.com"
-              required
-              className="w-full bg-transparent text-sm text-white placeholder:text-white/30 outline-none"
-            />
-          </div>
-        </label>
-
-        {authMode === 'register' && (
-          <label className="block">
-            <span className="mb-2 block text-xs uppercase tracking-[0.24em] text-white/45">Invite Code</span>
-            <div className="flex items-center gap-3 rounded-2xl border border-white/12 bg-white/8 px-4 py-3">
-              <KeyRound size={18} className="text-white/45" />
-              <input
-                type="text"
-                value={inviteCode}
-                onChange={(event) => setInviteCode(event.target.value)}
-                placeholder="输入邀请码"
-                required
-                className="w-full bg-transparent text-sm text-white placeholder:text-white/30 outline-none"
-              />
-            </div>
-          </label>
-        )}
-
-        <label className="block">
-          <span className="mb-2 block text-xs uppercase tracking-[0.24em] text-white/45">Password</span>
-          <div className="flex items-center gap-3 rounded-2xl border border-white/12 bg-white/8 px-4 py-3">
-            <Lock size={18} className="text-white/45" />
-            <input
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder={authMode === 'login' ? '输入密码' : '至少 6 位'}
-              required
-              minLength={6}
-              className="w-full bg-transparent text-sm text-white placeholder:text-white/30 outline-none"
-            />
-          </div>
-        </label>
-
-        {authMode === 'register' && (
-          <label className="block">
-            <span className="mb-2 block text-xs uppercase tracking-[0.24em] text-white/45">Confirm Password</span>
-            <div className="flex items-center gap-3 rounded-2xl border border-white/12 bg-white/8 px-4 py-3">
-              <Lock size={18} className="text-white/45" />
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(event) => setConfirmPassword(event.target.value)}
-                placeholder="再次输入密码"
-                required
-                minLength={6}
-                className="w-full bg-transparent text-sm text-white placeholder:text-white/30 outline-none"
-              />
-            </div>
-          </label>
-        )}
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="mt-2 flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-[#2a1836] transition-transform hover:scale-[1.01] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {loading ? (
-            <>
-              <Loader size={18} className="animate-spin" />
-              处理中
-            </>
-          ) : authMode === 'login' ? (
-            <>
-              <LogIn size={18} />
-              登录
-            </>
-          ) : (
-            <>
-              <UserPlus size={18} />
-              注册
-            </>
-          )}
-        </button>
-      </form>
-
-      <p className="mt-4 text-center text-xs leading-6 text-white/42">
-        右上角是私人入口。当前封面任何空白处都可以直接进入访客模式。
-      </p>
-    </div>
-  );
-
   return (
-    <div className="auth-dusk-stage relative flex min-h-[100svh] flex-col overflow-hidden text-white" onClick={handleStageClick}>
-      <div className="pointer-events-none absolute inset-0">
-        <div className="auth-dusk-aurora auth-dusk-aurora-left" />
-        <div className="auth-dusk-aurora auth-dusk-aurora-right" />
-        <div className="auth-dusk-waterline" />
-        <div className="auth-dusk-reflection" />
-        <div className="auth-dusk-noise" />
-      </div>
+    <div
+      className="relative flex min-h-[100svh] overflow-hidden bg-[#100f1e] text-white"
+      onClick={handleGuestEntry}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(event) => {
+        if ((event.key === 'Enter' || event.key === ' ') && !isAuthOpen && !loading) {
+          event.preventDefault();
+          onGuestLogin();
+        }
+      }}
+    >
+      <div className="landing-sunset absolute inset-0" />
+      <div className="landing-grain absolute inset-0 opacity-40" />
+      <div className="landing-orb absolute -left-12 top-24 h-56 w-56 rounded-full bg-[#ff8db7]/25 blur-3xl" />
+      <div className="landing-orb landing-orb-right absolute right-[-5rem] top-[-1rem] h-72 w-72 rounded-full bg-[#ffb39f]/30 blur-3xl" />
+      <div className="landing-haze absolute inset-x-0 bottom-0 h-[42%]" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-56 bg-gradient-to-t from-[#0d1120] via-[#12172a]/75 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-16 h-px bg-white/10" />
 
-      <header className="relative z-30 flex items-start justify-between px-5 pb-4 pt-6">
-        <div className="rounded-full border border-white/12 bg-white/8 px-4 py-2 backdrop-blur-md">
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/12">
-              <Heart size={16} className="fill-[#ff7aa2] text-[#ff7aa2]" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold tracking-[0.14em] text-white">Loving</p>
-              <p className="text-[11px] text-white/50">private couple journal</p>
-            </div>
-          </div>
-        </div>
+      <button
+        type="button"
+        onClick={(event) => {
+          event.stopPropagation();
+          if (isAuthOpen) {
+            closePanel();
+          } else {
+            openPanel('login');
+          }
+        }}
+        className="absolute right-5 top-5 z-30 inline-flex items-center gap-2 rounded-full border border-white/18 bg-black/20 px-4 py-2 text-sm font-medium text-white/92 backdrop-blur-xl transition-all hover:bg-black/30"
+      >
+        {isAuthOpen ? <X size={16} /> : <Menu size={16} />}
+        <span>{isAuthOpen ? '收起' : '登录 / 注册'}</span>
+      </button>
 
-        <button
-          onClick={(event) => {
-            event.stopPropagation();
-            setIsAuthPanelOpen((current) => !current);
-          }}
-          className="rounded-full border border-white/14 bg-[rgba(18,16,34,0.42)] px-4 py-2 text-sm font-medium text-white shadow-[0_12px_32px_-16px_rgba(0,0,0,0.8)] backdrop-blur-xl transition-colors hover:bg-[rgba(18,16,34,0.55)]"
+      {isAuthOpen && (
+        <div
+          className="absolute right-5 top-20 z-30 max-h-[calc(100svh-6rem)] w-[min(22rem,calc(100vw-2.5rem))] overflow-y-auto rounded-[28px] border border-white/12 bg-[rgba(10,12,22,0.62)] p-5 shadow-[0_20px_80px_rgba(0,0,0,0.35)] backdrop-blur-2xl"
+          onClick={(event) => event.stopPropagation()}
         >
-          登录 / 注册
-        </button>
-      </header>
+          <div className="mb-5 flex items-center gap-2 rounded-full bg-white/8 p-1">
+            <button
+              type="button"
+              onClick={() => openPanel('login')}
+              className={`flex-1 rounded-full px-3 py-2 text-sm font-semibold transition-colors ${mode === 'login' ? 'bg-white text-[#211633]' : 'text-white/70 hover:text-white'}`}
+            >
+              登录
+            </button>
+            <button
+              type="button"
+              onClick={() => openPanel('register')}
+              className={`flex-1 rounded-full px-3 py-2 text-sm font-semibold transition-colors ${mode === 'register' ? 'bg-white text-[#211633]' : 'text-white/70 hover:text-white'}`}
+            >
+              注册
+            </button>
+          </div>
 
-      {isAuthPanelOpen && renderAuthPanel()}
+          {error && (
+            <div className="mb-4 rounded-2xl border border-red-300/20 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+              {error}
+            </div>
+          )}
 
-      <main className="relative z-20 flex flex-1 flex-col justify-center px-6 pb-16 pt-6">
-        <div className="max-w-[20rem]">
-          <p className="text-xs uppercase tracking-[0.36em] text-white/45">Guest First Experience</p>
-          <h1 className="mt-5 text-[3.6rem] font-semibold leading-[0.92] tracking-[-0.08em] text-white sm:text-[4.6rem]">
+          {successMessage && (
+            <div className="mb-4 rounded-2xl border border-emerald-300/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+              {successMessage}
+            </div>
+          )}
+
+          {mode === 'login' ? (
+            <form className="space-y-3" onSubmit={handleLogin}>
+              <div className="rounded-2xl border border-white/10 bg-white/8 px-4 py-3">
+                <label className="mb-2 flex items-center gap-2 text-xs font-medium tracking-[0.24em] text-white/45 uppercase">
+                  <Mail size={14} />
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="your@email.com"
+                  required
+                  className="w-full bg-transparent text-base text-white outline-none placeholder:text-white/35"
+                />
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-white/8 px-4 py-3">
+                <label className="mb-2 flex items-center gap-2 text-xs font-medium tracking-[0.24em] text-white/45 uppercase">
+                  <Lock size={14} />
+                  Password
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="至少 6 位密码"
+                  required
+                  minLength={6}
+                  className="w-full bg-transparent text-base text-white outline-none placeholder:text-white/35"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-full bg-white px-4 py-3 text-sm font-semibold text-[#241733] transition-transform hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {loading ? <Loader2 size={16} className="animate-spin" /> : <ArrowRight size={16} />}
+                进入日记
+              </button>
+            </form>
+          ) : (
+            <form className="space-y-3" onSubmit={handleRegister}>
+              <div className="rounded-2xl border border-white/10 bg-white/8 px-4 py-3">
+                <label className="mb-2 flex items-center gap-2 text-xs font-medium tracking-[0.24em] text-white/45 uppercase">
+                  <Mail size={14} />
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="your@email.com"
+                  required
+                  className="w-full bg-transparent text-base text-white outline-none placeholder:text-white/35"
+                />
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-white/8 px-4 py-3">
+                <label className="mb-2 flex items-center gap-2 text-xs font-medium tracking-[0.24em] text-white/45 uppercase">
+                  <KeyRound size={14} />
+                  Invite
+                </label>
+                <input
+                  type="text"
+                  value={inviteCode}
+                  onChange={(event) => setInviteCode(event.target.value)}
+                  placeholder="输入邀请码"
+                  required
+                  className="w-full bg-transparent text-base text-white outline-none placeholder:text-white/35"
+                />
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-white/8 px-4 py-3">
+                <label className="mb-2 flex items-center gap-2 text-xs font-medium tracking-[0.24em] text-white/45 uppercase">
+                  <Lock size={14} />
+                  Password
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="至少 6 位密码"
+                  required
+                  minLength={6}
+                  className="w-full bg-transparent text-base text-white outline-none placeholder:text-white/35"
+                />
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-white/8 px-4 py-3">
+                <label className="mb-2 flex items-center gap-2 text-xs font-medium tracking-[0.24em] text-white/45 uppercase">
+                  <UserPlus size={14} />
+                  Confirm
+                </label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(event) => setConfirmPassword(event.target.value)}
+                  placeholder="再次输入密码"
+                  required
+                  minLength={6}
+                  className="w-full bg-transparent text-base text-white outline-none placeholder:text-white/35"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-full bg-white px-4 py-3 text-sm font-semibold text-[#241733] transition-transform hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {loading ? <Loader2 size={16} className="animate-spin" /> : <UserPlus size={16} />}
+                创建账户
+              </button>
+            </form>
+          )}
+        </div>
+      )}
+
+      <div className="relative z-10 flex min-h-[100svh] w-full flex-col px-6 pb-10 pt-20 sm:px-8">
+        <div className="pointer-events-none mt-auto max-w-[18rem] animate-[fadeIn_0.8s_ease-out]">
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/8 px-3 py-1.5 text-[11px] font-medium tracking-[0.26em] text-white/78 uppercase backdrop-blur-md">
+            <Heart size={14} className="fill-current" />
+            Loving Journal
+          </div>
+
+          <h1 className="font-display text-[3.4rem] font-black leading-[0.92] tracking-[-0.05em] text-white sm:text-[4.3rem]">
             Loving
           </h1>
-          <p className="mt-5 max-w-[16rem] text-[15px] leading-7 text-white/72">
-            暮色、海风和你们的日记。默认不打断画面，轻触任意位置就先进去看看。
+
+          <p className="mt-4 max-w-[16rem] text-[15px] leading-7 text-white/78">
+            把晚霞、海风、争吵和心动都留在这里。现在先轻触屏幕，直接进入属于你们的恋爱日记。
           </p>
-        </div>
 
-        <div className="mt-10 flex max-w-[16rem] flex-col gap-3 text-sm text-white/68">
-          <div className="h-px w-16 bg-white/18" />
-          <p>右上角收纳登录与注册，正常状态只保留这张主页封面。</p>
-        </div>
-      </main>
-
-      <footer className="relative z-20 px-6 pb-[calc(2rem+env(safe-area-inset-bottom))]">
-        <div className="inline-flex items-center gap-3 rounded-full border border-white/12 bg-white/8 px-4 py-3 backdrop-blur-md">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-xs font-semibold">点</span>
-          <div>
-            <p className="text-sm font-medium text-white">轻触任意位置</p>
-            <p className="text-xs text-white/52">直接以访客模式进入</p>
+          <div className="mt-7 inline-flex items-center gap-3 rounded-full bg-white/9 px-4 py-2.5 text-sm text-white/85 backdrop-blur-md">
+            <span className="landing-pulse inline-block h-2.5 w-2.5 rounded-full bg-[#ffb3c9]" />
+            {isAuthOpen ? '右上角可切换登录或注册' : '轻触任意位置，先以访客模式进入'}
           </div>
-          <ArrowRight size={16} className="text-white/60" />
         </div>
-      </footer>
+
+        <div className="pointer-events-none mt-14 flex items-end justify-between text-white/45">
+          <div>
+            <p className="text-[11px] tracking-[0.32em] uppercase">Guest Entry</p>
+            <p className="mt-2 text-sm">默认进入访客模式，登录入口已收纳到右上角。</p>
+          </div>
+          <div className="landing-wave-strip h-16 w-24 rounded-full" />
+        </div>
+      </div>
     </div>
   );
 };
