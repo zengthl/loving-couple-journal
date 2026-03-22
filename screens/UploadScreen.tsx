@@ -22,10 +22,11 @@ export const UploadScreen: React.FC<UploadScreenProps> = ({ provinces, onBack, o
   const selectedProvince = provinces.find(p => p.id === selectedProvinceId);
 
   const handleSubmit = () => {
-    if (!selectedProvinceId || !city) return;
+    const normalizedInputCity = city.trim();
+    if (!selectedProvinceId || !normalizedInputCity) return;
     onUpload({
       provinceId: selectedProvinceId,
-      city,
+      city: normalizedInputCity,
       date,
       note,
       photos

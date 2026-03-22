@@ -88,6 +88,19 @@ function toProvince(db: DbProvince): Province {
     };
 }
 
+export function normalizeCityName(city: string | null | undefined): string {
+    const rawCity = (city || '').trim();
+
+    if (!rawCity) {
+        return '未分类';
+    }
+
+    return rawCity
+        .replace(/\s+/g, '')
+        .replace(/(特别行政区|自治州|地区|盟)$/, '')
+        .replace(/市$/, '') || '未分类';
+}
+
 export async function fetchProvinces(): Promise<Province[]> {
     const { data, error } = await supabase
         .from('provinces')
@@ -109,6 +122,8 @@ export async function markProvinceVisited(
     photos: string[],
     city?: string
 ): Promise<void> {
+    const normalizedCity = normalizeCityName(city);
+
     // First, check if user already visited this province with the same city
     let query = supabase
         .from('user_province_visits')
@@ -116,8 +131,8 @@ export async function markProvinceVisited(
         .eq('user_id', userId)
         .eq('province_id', provinceId);
 
-    if (city) {
-        query = query.eq('city', city);
+    if (normalizedCity !== '未分类') {
+        query = query.eq('city', normalizedCity);
     }
 
     const { data: existingRows } = await query;
@@ -136,8 +151,8 @@ export async function markProvinceVisited(
             .eq('user_id', userId)
             .eq('province_id', provinceId);
 
-        if (city) {
-            updateQuery = updateQuery.eq('city', city);
+        if (normalizedCity !== '未分类') {
+            updateQuery = updateQuery.eq('city', normalizedCity);
         }
 
         const { error } = await updateQuery;
@@ -154,7 +169,7 @@ export async function markProvinceVisited(
                 province_id: provinceId,
                 visit_date: visitDate,
                 photos: photos,
-                city: city || null
+                city: normalizedCity
             }]);
 
         if (error) {
@@ -187,7 +202,7 @@ export async function fetchProvincesWithUserVisits(userId: string, baseProvinces
     const visitsMap = new Map<string, { photos: string[]; visit_date: string; cityPhotos: Record<string, string[]> }>();
     (visits || []).forEach(v => {
         const existing = visitsMap.get(v.province_id);
-        const cityName = v.city || '未分类';
+        const cityName = normalizeCityName(v.city);
         if (existing) {
             // Merge photos
             existing.photos = [...(existing.photos || []), ...(v.photos || [])];
@@ -609,7 +624,7 @@ export function groupVisitsByCity(visits: ProvinceVisit[]): CitySummary[] {
     const cityMap = new Map<string, ProvinceVisit[]>();
 
     visits.forEach(visit => {
-        const cityName = visit.city || '未分类';
+        const cityName = normalizeCityName(visit.city);
         if (!cityMap.has(cityName)) {
             cityMap.set(cityName, []);
         }
@@ -766,12 +781,14 @@ export async function createVisit(
     visitDate: string,
     photos: string[]
 ): Promise<ProvinceVisit | null> {
+    const normalizedCity = normalizeCityName(city);
+
     const { data, error } = await supabase
         .from('user_province_visits')
         .insert([{
             user_id: userId,
             province_id: provinceId,
-            city: city,
+            city: normalizedCity,
             visit_date: visitDate,
             photos: photos
         }])

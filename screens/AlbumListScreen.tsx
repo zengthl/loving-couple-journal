@@ -3,7 +3,7 @@ import { ArrowLeft, Image as ImageIcon, MapPin, Play, Download, CheckCircle, Loa
 import { Province, ProvinceVisit, CitySummary, AlbumViewMode } from '../types';
 import { ImageViewer } from '../components/ImageViewer';
 import { ImageUploader } from '../components/ImageUploader';
-import { fetchProvinceVisits, groupVisitsByCity, addPhotosToVisit, deletePhotoFromVisit, createVisit, deleteCityAlbum } from '../lib/db';
+import { fetchProvinceVisits, groupVisitsByCity, addPhotosToVisit, deletePhotoFromVisit, createVisit, deleteCityAlbum, normalizeCityName } from '../lib/db';
 import { CitySelectScreen } from './CitySelectScreen';
 import { CityTimelineScreen } from './CityTimelineScreen';
 import { OptimizedImage } from '../components/OptimizedImage';
@@ -202,7 +202,7 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({
   // Get visits for current city
   const getCurrentVisits = useCallback((): ProvinceVisit[] => {
     if (!selectedCity) return cityVisits;
-    return cityVisits.filter(v => (v.city || '未分类') === selectedCity);
+    return cityVisits.filter(v => normalizeCityName(v.city) === selectedCity);
   }, [selectedCity, cityVisits]);
 
   // Handle delete photo from specific visit
@@ -362,7 +362,7 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({
 
   // Render City Timeline Screen
   if (viewMode === AlbumViewMode.CITY_TIMELINE && selectedProvince && selectedCity) {
-    const cityVisitList = cityVisits.filter(v => (v.city || '未分类') === selectedCity);
+    const cityVisitList = citySummaries.find((summary) => summary.cityName === selectedCity)?.visits || [];
     return (
       <CityTimelineScreen
         cityName={selectedCity}
@@ -504,7 +504,7 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({
         <div className="flex-1 overflow-y-auto p-1">
           {visits.length > 0 ? (
             visits.map(visit => {
-              const cityName = visit.city || '未分类';
+              const cityName = normalizeCityName(visit.city);
               return (
                 <div key={visit.id} className="mb-6">
                   {/* Visit Header */}
