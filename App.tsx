@@ -10,7 +10,6 @@ const PublishScreen = lazy(() => import('./screens/PublishScreen').then(m => ({ 
 const UploadScreen = lazy(() => import('./screens/UploadScreen').then(m => ({ default: m.UploadScreen })));
 const AlbumListScreen = lazy(() => import('./screens/AlbumListScreen').then(m => ({ default: m.AlbumListScreen })));
 const LoginScreen = lazy(() => import('./screens/LoginScreen').then(m => ({ default: m.LoginScreen })));
-const RegisterScreen = lazy(() => import('./screens/RegisterScreen').then(m => ({ default: m.RegisterScreen })));
 import { deleteTimelineEvent, removeImageFromTimelineEvents, removePhotoFromUserProvinces, updateTimelineEvent } from './lib/db';
 import { useTimelineEvents, useProvinces, useDiscoveryItems, useAnniversaries } from './lib/hooks';
 import { useAuth } from './lib/useAuth';
@@ -60,7 +59,6 @@ const FALLBACK_PROVINCES: Province[] = [
 
 export default function App() {
   const [activeScreen, setActiveScreen] = useState<ScreenName>(ScreenName.TIMELINE);
-  const [authView, setAuthView] = useState<'login' | 'register'>('login');
   const [isGuest, setIsGuest] = useState(false);
   const [guestToast, setGuestToast] = useState(false);
 
@@ -228,16 +226,9 @@ export default function App() {
 
     // Show auth screens if not authenticated
     if (!isAuthenticated) {
-      if (authView === 'register') {
-        return (
-          <Suspense fallback={<PageLoader />}>
-            <RegisterScreen onRegisterSuccess={() => setAuthView('login')} onSwitchToLogin={() => setAuthView('login')} />
-          </Suspense>
-        );
-      }
       return (
         <Suspense fallback={<PageLoader />}>
-          <LoginScreen onLoginSuccess={() => { }} onSwitchToRegister={() => setAuthView('register')} onGuestLogin={handleGuestLogin} />
+          <LoginScreen onLoginSuccess={() => setActiveScreen(ScreenName.TIMELINE)} onGuestLogin={handleGuestLogin} />
         </Suspense>
       );
     }

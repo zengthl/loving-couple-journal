@@ -49,7 +49,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeScreen, onNaviga
         </div>
       )}
 
-      <main className="relative flex-1 overflow-y-auto pb-24 no-scrollbar">
+      <main className={`relative flex-1 overflow-y-auto no-scrollbar ${showBottomNav ? 'pb-24' : 'pb-0'}`}>
         {children}
       </main>
 
