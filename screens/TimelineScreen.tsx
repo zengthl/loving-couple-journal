@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Lock, Heart, MapPin, Play } from 'lucide-react';
+import { Heart, Lock, MapPin, Play } from 'lucide-react';
 import { TimelineEvent } from '../types';
 import { EventDetailModal } from '../components/EventDetailModal';
 import { OptimizedImage } from '../components/OptimizedImage';
@@ -14,6 +14,13 @@ interface TimelineScreenProps {
   isGuest?: boolean;
 }
 
+interface TimelineCardCopy {
+  heading: string;
+  summary: string;
+  location: string;
+  showLocationMeta: boolean;
+}
+
 export const TimelineScreen: React.FC<TimelineScreenProps> = ({
   events,
   onDeleteEvent,
@@ -22,10 +29,10 @@ export const TimelineScreen: React.FC<TimelineScreenProps> = ({
   isGuest,
 }) => {
   const [viewingEvent, setViewingEvent] = useState<TimelineEvent | null>(null);
-  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLongPress = useRef(false);
 
-  const months = Array.from(new Set<string>(events.map(event => `${event.year}-${event.month}`))).map((value) => {
+  const months = Array.from(new Set<string>(events.map((event) => `${event.year}-${event.month}`))).map((value) => {
     const [year, month] = value.split('-');
     return { year, month };
   });
@@ -55,6 +62,27 @@ export const TimelineScreen: React.FC<TimelineScreenProps> = ({
       setViewingEvent(event);
     }
     isLongPress.current = false;
+  };
+
+  const getCardCopy = (event: TimelineEvent): TimelineCardCopy => {
+    const title = event.title.trim();
+    const location = event.location.trim();
+    const note = event.note?.trim() || '';
+    const isTravelTitle = Boolean(
+      location &&
+      (
+        title === `${location}之旅` ||
+        title === `${location}旅行` ||
+        title.endsWith('之旅')
+      )
+    );
+
+    return {
+      heading: isTravelTitle ? (location || title || '旅程记录') : (title || location || '旅程记录'),
+      summary: note || (!isTravelTitle && location && location !== title ? location : ''),
+      location,
+      showLocationMeta: Boolean(location) && !isTravelTitle && location !== title,
+    };
   };
 
   const renderPreviewMedia = (event: TimelineEvent, eventIndex: number) => {
@@ -146,7 +174,7 @@ export const TimelineScreen: React.FC<TimelineScreenProps> = ({
 
       <div className="flex-1 px-5 pb-20 pt-2">
         {months.map(({ month, year }) => {
-          const monthEvents = events.filter(event => event.month === month && event.year === year);
+          const monthEvents = events.filter((event) => event.month === month && event.year === year);
           if (monthEvents.length === 0) {
             return null;
           }
@@ -161,54 +189,64 @@ export const TimelineScreen: React.FC<TimelineScreenProps> = ({
               </div>
 
               <div className="relative ml-2 space-y-8 border-l-2 border-primary/20 pl-4">
-                {monthEvents.map((event, eventIndex) => (
-                  <div key={event.id} className="group relative pl-6">
-                    {event.isSpecial ? (
-                      <div className="absolute -left-[11px] top-4 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-white shadow-sm">
-                        <Heart size={12} fill="currentColor" />
-                      </div>
-                    ) : (
-                      <div className="absolute -left-[9px] top-4 box-content h-4 w-4 rounded-full border-[3px] border-primary bg-background-light"></div>
-                    )}
+                {monthEvents.map((event, eventIndex) => {
+                  const cardCopy = getCardCopy(event);
 
-                    <div
-                      onClick={() => handleClick(event)}
-                      onTouchStart={() => handleLongPressStart(event)}
-                      onTouchEnd={handleLongPressEnd}
-                      onTouchCancel={handleLongPressEnd}
-                      onMouseDown={() => handleLongPressStart(event)}
-                      onMouseUp={handleLongPressEnd}
-                      onMouseLeave={handleLongPressEnd}
-                      className="cursor-pointer select-none rounded-2xl bg-white p-3 shadow-card transition-all duration-300 hover:shadow-soft active:scale-[0.98]"
-                    >
-                      {renderPreviewMedia(event, eventIndex)}
-
-                      <div className="flex items-end justify-between gap-3 px-1">
-                        <div className="min-w-0 flex-1">
-                          <h3 className="mb-1 line-clamp-2 text-lg font-bold leading-tight text-text-main">{event.title}</h3>
-                          <div className="flex items-center gap-1 text-sm text-text-sub">
-                            <MapPin size={14} />
-                            <span className="truncate">{event.location}</span>
-                          </div>
+                  return (
+                    <div key={event.id} className="group relative pl-6">
+                      {event.isSpecial ? (
+                        <div className="absolute -left-[11px] top-4 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-white shadow-sm">
+                          <Heart size={12} fill="currentColor" />
                         </div>
-                        <div className="flex shrink-0 flex-col items-end leading-none">
-                          <span className="font-display text-2xl font-bold text-primary">{event.date}</span>
-                          <span className="mt-1 text-xs font-medium text-text-sub/60">{event.dayOfWeek}</span>
-                        </div>
-                      </div>
-
-                      {event.note && (
-                        <div className="mt-3 border-t border-gray-100 pt-3">
-                          <p className="line-clamp-1 text-sm text-gray-600">{event.note}</p>
-                        </div>
+                      ) : (
+                        <div className="absolute -left-[9px] top-4 box-content h-4 w-4 rounded-full border-[3px] border-primary bg-background-light"></div>
                       )}
 
-                      <div className="mt-2 text-center">
-                        <span className="text-[10px] text-gray-300">长按可删除</span>
+                      <div
+                        onClick={() => handleClick(event)}
+                        onTouchStart={() => handleLongPressStart(event)}
+                        onTouchEnd={handleLongPressEnd}
+                        onTouchCancel={handleLongPressEnd}
+                        onMouseDown={() => handleLongPressStart(event)}
+                        onMouseUp={handleLongPressEnd}
+                        onMouseLeave={handleLongPressEnd}
+                        className="cursor-pointer select-none rounded-2xl bg-white p-3 shadow-card transition-all duration-300 hover:shadow-soft active:scale-[0.98]"
+                      >
+                        {renderPreviewMedia(event, eventIndex)}
+
+                        <div className="flex items-start justify-between gap-4 px-1">
+                          <div className="min-w-0 flex-1">
+                            <h3 className="line-clamp-2 text-[1.4rem] font-black leading-[1.15] tracking-tight text-text-main">
+                              {cardCopy.heading}
+                            </h3>
+
+                            {cardCopy.showLocationMeta && (
+                              <div className="mt-2 inline-flex max-w-full items-center gap-1 rounded-full bg-primary/8 px-2.5 py-1 text-xs font-medium text-text-sub">
+                                <MapPin size={12} />
+                                <span className="truncate">{cardCopy.location}</span>
+                              </div>
+                            )}
+
+                            {cardCopy.summary && (
+                              <p className="mt-3 line-clamp-2 text-[15px] leading-7 text-gray-600">
+                                {cardCopy.summary}
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="flex shrink-0 flex-col items-end rounded-2xl bg-primary/6 px-3 py-2 text-right leading-none">
+                            <span className="font-display text-2xl font-bold text-primary">{event.date}</span>
+                            <span className="mt-1 text-xs font-medium text-text-sub/60">{event.dayOfWeek}</span>
+                          </div>
+                        </div>
+
+                        <div className="mt-2 text-center">
+                          <span className="text-[10px] text-gray-300">长按可删除</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           );
@@ -224,12 +262,12 @@ export const TimelineScreen: React.FC<TimelineScreenProps> = ({
           onDelete={onDeleteEvent}
           onUpdate={onUpdateEvent}
           onDeleteImage={async (imageUrl) => {
-            const updatedImages = viewingEvent.images.filter(currentImage => currentImage !== imageUrl);
+            const updatedImages = viewingEvent.images.filter((currentImage) => currentImage !== imageUrl);
             await onUpdateEvent(viewingEvent.id, { images: updatedImages });
             if (onDeleteImageSync) {
               await onDeleteImageSync(imageUrl);
             }
-            setViewingEvent(prev => (prev ? { ...prev, images: updatedImages } : null));
+            setViewingEvent((prev) => (prev ? { ...prev, images: updatedImages } : null));
           }}
         />
       )}
