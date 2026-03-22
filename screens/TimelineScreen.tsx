@@ -57,6 +57,80 @@ export const TimelineScreen: React.FC<TimelineScreenProps> = ({
     isLongPress.current = false;
   };
 
+  const renderPreviewMedia = (event: TimelineEvent, eventIndex: number) => {
+    const previewItems = event.images.slice(0, 4);
+    if (previewItems.length === 0) {
+      return null;
+    }
+
+    const renderMediaItem = (imageUrl: string, index: number) => {
+      const isVideo = isVideoUrl(imageUrl);
+
+      return (
+        <div key={`${event.id}-${index}`} className="relative h-full w-full overflow-hidden rounded-[inherit] bg-gray-100">
+          {isVideo ? (
+            <video
+              src={imageUrl}
+              className="h-full w-full object-cover"
+              muted
+              playsInline
+              preload="metadata"
+            />
+          ) : (
+            <OptimizedImage
+              src={imageUrl}
+              alt={event.title}
+              variant="card"
+              loading={eventIndex === 0 && index === 0 ? 'eager' : 'lazy'}
+              fetchPriority={eventIndex === 0 && index === 0 ? 'high' : 'auto'}
+              decoding="async"
+              className="h-full w-full object-cover"
+            />
+          )}
+          {isVideo && (
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black/50">
+                <Play size={20} className="ml-0.5 text-white" />
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    if (previewItems.length === 1) {
+      return (
+        <div className="relative mb-4 aspect-[4/3] w-full overflow-hidden rounded-xl bg-gray-100">
+          {renderMediaItem(previewItems[0], 0)}
+        </div>
+      );
+    }
+
+    if (previewItems.length === 2) {
+      return (
+        <div className="relative mb-4 grid aspect-[4/3] w-full grid-cols-2 gap-1 overflow-hidden rounded-xl bg-gray-100">
+          {previewItems.map(renderMediaItem)}
+        </div>
+      );
+    }
+
+    if (previewItems.length === 3) {
+      return (
+        <div className="relative mb-4 grid h-[260px] w-full grid-cols-2 gap-1 overflow-hidden rounded-xl bg-gray-100">
+          <div className="row-span-2 h-full">{renderMediaItem(previewItems[0], 0)}</div>
+          <div>{renderMediaItem(previewItems[1], 1)}</div>
+          <div>{renderMediaItem(previewItems[2], 2)}</div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="relative mb-4 grid h-[260px] w-full grid-cols-2 grid-rows-2 gap-1 overflow-hidden rounded-xl bg-gray-100">
+        {previewItems.map(renderMediaItem)}
+      </div>
+    );
+  };
+
   return (
     <div className="flex h-full flex-col bg-background-light">
       <header className="sticky top-0 z-50 flex items-center justify-between border-b border-primary/10 bg-background-light/90 px-4 py-4 backdrop-blur-md">
@@ -107,56 +181,19 @@ export const TimelineScreen: React.FC<TimelineScreenProps> = ({
                       onMouseLeave={handleLongPressEnd}
                       className="cursor-pointer select-none rounded-2xl bg-white p-3 shadow-card transition-all duration-300 hover:shadow-soft active:scale-[0.98]"
                     >
-                      {event.images.length > 0 && (
-                        <div className={`relative mb-3 w-full overflow-hidden rounded-xl bg-gray-100 ${event.images.length > 1 ? 'grid aspect-[4/3] grid-cols-2 gap-1' : 'aspect-[4/3]'}`}>
-                          {event.images.slice(0, 4).map((imageUrl, index) => {
-                            const isVideo = isVideoUrl(imageUrl);
-                            return (
-                              <div key={index} className="relative h-full w-full">
-                                {isVideo ? (
-                                  <video
-                                    src={imageUrl}
-                                    className="h-full w-full object-cover"
-                                    muted
-                                    playsInline
-                                    preload="metadata"
-                                  />
-                                ) : (
-                                  <OptimizedImage
-                                    src={imageUrl}
-                                    alt={event.title}
-                                    variant="card"
-                                    loading={eventIndex === 0 && index === 0 ? 'eager' : 'lazy'}
-                                    fetchPriority={eventIndex === 0 && index === 0 ? 'high' : 'auto'}
-                                    decoding="async"
-                                    className="h-full w-full object-cover"
-                                  />
-                                )
-                                }
-                                {isVideo && (
-                                  <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black/50">
-                                      <Play size={20} className="ml-0.5 text-white" />
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
+                      {renderPreviewMedia(event, eventIndex)}
 
-                      <div className="flex items-start justify-between px-1">
-                        <div>
-                          <h3 className="mb-1 text-lg font-bold text-text-main">{event.title}</h3>
+                      <div className="flex items-end justify-between gap-3 px-1">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="mb-1 line-clamp-2 text-lg font-bold leading-tight text-text-main">{event.title}</h3>
                           <div className="flex items-center gap-1 text-sm text-text-sub">
                             <MapPin size={14} />
-                            <span>{event.location}</span>
+                            <span className="truncate">{event.location}</span>
                           </div>
                         </div>
-                        <div className="flex flex-col items-end">
+                        <div className="flex shrink-0 flex-col items-end leading-none">
                           <span className="font-display text-2xl font-bold text-primary">{event.date}</span>
-                          <span className="text-xs font-medium text-text-sub/60">{event.dayOfWeek}</span>
+                          <span className="mt-1 text-xs font-medium text-text-sub/60">{event.dayOfWeek}</span>
                         </div>
                       </div>
 

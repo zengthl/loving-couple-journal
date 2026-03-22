@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Plus, Heart, Bookmark, MapPin, Calendar, X, Camera } from 'lucide-react';
+import { ArrowLeft, Plus, Heart, MapPin, Calendar, X, Camera } from 'lucide-react';
 import { Anniversary } from '../types';
 import { ImageUploader } from '../components/ImageUploader';
 import { OptimizedImage } from '../components/OptimizedImage';
@@ -233,52 +233,6 @@ export const AnniversaryScreen: React.FC<AnniversaryScreenProps> = ({
             ))}
           </div>
         )}
-
-        <div className="group relative mt-4 w-full cursor-pointer">
-          <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-primary/10 blur-2xl"></div>
-          <div className="absolute -bottom-4 -left-4 h-32 w-32 rounded-full bg-blue-200/10 blur-2xl"></div>
-
-          <div className="relative flex flex-col gap-6 md:gap-8">
-            <div className="relative z-10 -rotate-1 transform transition-transform duration-500 ease-out hover:rotate-0">
-              <div className="rounded-lg border border-stone-100 bg-white p-3 pb-8 shadow-card">
-                <div className="relative aspect-[4/3] w-full overflow-hidden rounded bg-stone-200">
-                  <img
-                    src="/assets/couple_cherry.jpg"
-                    alt="Couple holding hands"
-                    loading="eager"
-                    fetchPriority="high"
-                    decoding="async"
-                    className="h-full w-full object-cover transition-transform duration-700 hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-60"></div>
-                </div>
-                <div className="mt-3 flex items-center justify-between px-1">
-                  <span className="font-handwriting text-xs text-text-sub/70">#SunsetWalks</span>
-                  <Heart size={16} className="text-primary/60" />
-                </div>
-              </div>
-            </div>
-
-            <div className="relative z-20 -mt-12 rotate-2 transform transition-transform duration-500 ease-out hover:rotate-0">
-              <div className="rounded-lg border border-stone-100 bg-white p-3 pb-8 shadow-card">
-                <div className="relative aspect-[4/3] w-full overflow-hidden rounded bg-stone-200">
-                  <img
-                    src="/assets/heart_hands.jpg"
-                    alt="Coffee moment"
-                    loading="lazy"
-                    fetchPriority="low"
-                    decoding="async"
-                    className="h-full w-full object-cover transition-transform duration-700 hover:scale-105"
-                  />
-                </div>
-                <div className="mt-3 flex items-center justify-between px-1">
-                  <span className="font-handwriting text-xs text-text-sub/70">#CoffeeDate</span>
-                  <Bookmark size={16} className="text-primary/60" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
