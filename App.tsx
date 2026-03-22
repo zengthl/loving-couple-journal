@@ -3,7 +3,6 @@ import { Layout } from './components/Layout';
 import { ScreenName, TimelineEvent, Province, DiscoveryItem, Anniversary } from './types';
 
 // Lazy load screens for code splitting
-const DiscoveryScreen = lazy(() => import('./screens/DiscoveryScreen').then(m => ({ default: m.DiscoveryScreen })));
 const TimelineScreen = lazy(() => import('./screens/TimelineScreen').then(m => ({ default: m.TimelineScreen })));
 const AnniversaryScreen = lazy(() => import('./screens/AnniversaryScreen').then(m => ({ default: m.AnniversaryScreen })));
 const MapScreen = lazy(() => import('./screens/MapScreen').then(m => ({ default: m.MapScreen })));
@@ -91,13 +90,12 @@ export default function App() {
 
   const shouldLoadTimeline = isAuthenticated;
   const shouldLoadTravel = isAuthenticated && [ScreenName.MAP, ScreenName.UPLOAD, ScreenName.ALBUM_LIST].includes(activeScreen);
-  const shouldLoadDiscovery = isAuthenticated && activeScreen === ScreenName.DISCOVERY;
   const shouldLoadAnniversaries = isAuthenticated && activeScreen === ScreenName.ANNIVERSARY;
 
   // Only fetch the data needed by the active route.
   const { events: timelineEvents, loading: timelineLoading, addEvent, reload: reloadTimeline } = useTimelineEvents(effectiveUserId, { enabled: shouldLoadTimeline });
   const { provinces: dbProvinces, loading: provincesLoading, reload: reloadProvinces, markVisited } = useProvinces(effectiveUserId, { enabled: shouldLoadTravel });
-  const { items: discoveryItems, loading: discoveryLoading, addItem } = useDiscoveryItems(effectiveUserId, { enabled: shouldLoadDiscovery });
+  const { addItem } = useDiscoveryItems(effectiveUserId, { enabled: false });
   const { anniversaries, loading: anniversariesLoading, addAnniversary } = useAnniversaries(effectiveUserId, { enabled: shouldLoadAnniversaries });
 
   // Handle delete/update timeline event
@@ -167,8 +165,8 @@ export default function App() {
     };
     await addEvent(newEvent);
 
-    // 3. Navigate back to Discovery
-    setActiveScreen(ScreenName.DISCOVERY);
+    // 3. Navigate back to Timeline
+    setActiveScreen(ScreenName.TIMELINE);
   };
 
   // Handle uploading a new footprint (Map)
@@ -245,15 +243,6 @@ export default function App() {
     }
 
     switch (activeScreen) {
-      case ScreenName.DISCOVERY:
-        if (discoveryLoading) {
-          return <PageLoader />;
-        }
-        return (
-          <Suspense fallback={<PageLoader />}>
-            <DiscoveryScreen items={discoveryItems} />
-          </Suspense>
-        );
       case ScreenName.TIMELINE:
         if (timelineLoading) {
           return <PageLoader />;
@@ -324,6 +313,7 @@ export default function App() {
           </Suspense>
         );
       case ScreenName.ALBUM_LIST:
+      case ScreenName.DISCOVERY:
         if (provincesLoading) {
           return <PageLoader />;
         }

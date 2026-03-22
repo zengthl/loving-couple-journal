@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Compass, Map, CalendarHeart, Plus, LogOut } from 'lucide-react';
+import { CalendarHeart, Home, Images, LogOut, Map, Plus } from 'lucide-react';
 import { ScreenName } from '../types';
 import { AuthUser } from '../lib/auth';
 
@@ -14,11 +14,12 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children, activeScreen, onNavigate, user, onLogout, isGuest }) => {
   const showBottomNav = !!user && [
-    ScreenName.DISCOVERY,
     ScreenName.TIMELINE,
+    ScreenName.ALBUM_LIST,
     ScreenName.MAP,
     ScreenName.ANNIVERSARY,
   ].includes(activeScreen);
+
   const showUserInfo = !!user && showBottomNav;
 
   return (
@@ -59,15 +60,15 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeScreen, onNaviga
             className={`flex flex-col items-center gap-1 transition-colors duration-300 ${activeScreen === ScreenName.TIMELINE ? 'text-primary' : 'text-text-sub hover:text-primary'}`}
           >
             <Home className="h-6 w-6" strokeWidth={activeScreen === ScreenName.TIMELINE ? 2.5 : 2} />
-            <span className="text-[10px] font-medium">首页</span>
+            <span className="text-[10px] font-medium">动态</span>
           </button>
 
           <button
-            onClick={() => onNavigate(ScreenName.DISCOVERY)}
-            className={`flex flex-col items-center gap-1 transition-colors duration-300 ${activeScreen === ScreenName.DISCOVERY ? 'text-primary' : 'text-text-sub hover:text-primary'}`}
+            onClick={() => onNavigate(ScreenName.ALBUM_LIST)}
+            className={`flex flex-col items-center gap-1 transition-colors duration-300 ${activeScreen === ScreenName.ALBUM_LIST ? 'text-primary' : 'text-text-sub hover:text-primary'}`}
           >
-            <Compass className="h-6 w-6" strokeWidth={activeScreen === ScreenName.DISCOVERY ? 2.5 : 2} />
-            <span className="text-[10px] font-medium">发现</span>
+            <Images className="h-6 w-6" strokeWidth={activeScreen === ScreenName.ALBUM_LIST ? 2.5 : 2} />
+            <span className="text-[10px] font-medium">相册</span>
           </button>
 
           <div className="relative -top-5">
