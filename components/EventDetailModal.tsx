@@ -12,6 +12,7 @@ interface EventDetailModalProps {
     onDelete: (id: string) => Promise<void>;
     onUpdate: (id: string, data: Partial<DetailItem>) => Promise<void>;
     onDeleteImage?: (imageUrl: string) => Promise<void>;
+    isGuest?: boolean;
 }
 
 // Helper to check if URL is a video
@@ -50,7 +51,8 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
     onClose,
     onDelete,
     onUpdate,
-    onDeleteImage
+    onDeleteImage,
+    isGuest = false
 }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
@@ -278,33 +280,35 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                         </div>
                     )}
 
-                    <div className="flex items-center justify-center gap-6">
-                        <button
-                            onClick={() => downloadFile(currentImage)}
-                            className="bg-white/15 hover:bg-white/25 text-white px-5 py-2 rounded-full backdrop-blur-md flex items-center gap-2 transition-all active:scale-95"
-                        >
-                            <Download size={18} />
-                            <span className="text-sm font-bold">下载原图</span>
-                        </button>
-                        {onDeleteImage && (
+                    {!isGuest && (
+                        <div className="flex items-center justify-center gap-6">
                             <button
-                                onClick={async () => {
-                                    if (window.confirm('确定要删除这张图片吗？')) {
-                                        await onDeleteImage(currentImage);
-                                        if (images.length <= 1) {
-                                            setViewingImageIndex(null);
-                                        } else if (viewingImageIndex >= images.length - 1) {
-                                            setViewingImageIndex(images.length - 2);
-                                        }
-                                    }
-                                }}
-                                className="bg-red-500/80 hover:bg-red-500 text-white px-5 py-2 rounded-full backdrop-blur-md flex items-center gap-2 transition-all active:scale-95"
+                                onClick={() => downloadFile(currentImage)}
+                                className="bg-white/15 hover:bg-white/25 text-white px-5 py-2 rounded-full backdrop-blur-md flex items-center gap-2 transition-all active:scale-95"
                             >
-                                <Trash2 size={18} />
-                                <span className="text-sm font-bold">删除</span>
+                                <Download size={18} />
+                                <span className="text-sm font-bold">下载原图</span>
                             </button>
-                        )}
-                    </div>
+                            {onDeleteImage && (
+                                <button
+                                    onClick={async () => {
+                                        if (window.confirm('确定要删除这张图片吗？')) {
+                                            await onDeleteImage(currentImage);
+                                            if (images.length <= 1) {
+                                                setViewingImageIndex(null);
+                                            } else if (viewingImageIndex >= images.length - 1) {
+                                                setViewingImageIndex(images.length - 2);
+                                            }
+                                        }
+                                    }}
+                                    className="bg-red-500/80 hover:bg-red-500 text-white px-5 py-2 rounded-full backdrop-blur-md flex items-center gap-2 transition-all active:scale-95"
+                                >
+                                    <Trash2 size={18} />
+                                    <span className="text-sm font-bold">删除</span>
+                                </button>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         );
@@ -314,6 +318,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
         <>
             <div
                 className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-[2px] p-0 sm:p-4 animate-fade-in"
+                data-guest={isGuest ? 'true' : 'false'}
                 onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
             >
                 {/* Modal Content - reduced height, safe area aware */}
@@ -410,7 +415,14 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
 
                     {/* Footer Actions */}
                     <div className="p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] border-t border-gray-100 bg-white flex gap-3 flex-shrink-0">
-                        {isEditing ? (
+                        {isGuest ? (
+                            <button
+                                onClick={onClose}
+                                className="w-full rounded-xl bg-gray-100 py-3 text-sm font-bold text-text-main transition-colors hover:bg-gray-200"
+                            >
+                                关闭
+                            </button>
+                        ) : isEditing ? (
                             <button
                                 onClick={handleSave}
                                 disabled={isSaving}

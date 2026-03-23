@@ -15,6 +15,39 @@ import {
 } from './db';
 
 const GUEST_USER_ID = 'guest-visitor';
+const GUEST_CACHE_TTL_MS = 5 * 60 * 1000;
+const guestCacheMemory = new Map<string, { timestamp: number; data: unknown }>();
+
+const readGuestCache = <T,>(key: string): { timestamp: number; data: T } | null => {
+    const memoryValue = guestCacheMemory.get(key);
+    if (memoryValue && Date.now() - memoryValue.timestamp < GUEST_CACHE_TTL_MS) {
+        return memoryValue as { timestamp: number; data: T };
+    }
+
+    try {
+        const raw = window.sessionStorage.getItem(`guest-cache:${key}`);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw) as { timestamp: number; data: T };
+        if (Date.now() - parsed.timestamp >= GUEST_CACHE_TTL_MS) {
+            window.sessionStorage.removeItem(`guest-cache:${key}`);
+            return null;
+        }
+        guestCacheMemory.set(key, parsed);
+        return parsed;
+    } catch {
+        return null;
+    }
+};
+
+const writeGuestCache = <T,>(key: string, data: T) => {
+    const entry = { timestamp: Date.now(), data };
+    guestCacheMemory.set(key, entry);
+    try {
+        window.sessionStorage.setItem(`guest-cache:${key}`, JSON.stringify(entry));
+    } catch {
+        // Ignore sessionStorage quota or availability failures.
+    }
+};
 
 interface HookOptions {
     enabled?: boolean;
@@ -33,10 +66,22 @@ export function useTimelineEvents(userId: string | undefined, options: HookOptio
             return;
         }
 
-        setLoading(true);
+        const isGuest = userId === GUEST_USER_ID;
+        const cached = isGuest ? readGuestCache<TimelineEvent[]>('timeline-events') : null;
+
+        if (cached) {
+            setEvents(cached.data);
+            setLoading(false);
+        } else {
+            setLoading(true);
+        }
+
         try {
             const data = await fetchTimelineEvents();
             setEvents(data);
+            if (isGuest) {
+                writeGuestCache('timeline-events', data);
+            }
             setError(null);
         } catch (err) {
             setError(err instanceof Error ? err : new Error('Failed to fetch timeline events'));
@@ -81,7 +126,16 @@ export function useProvinces(userId: string | undefined, options: HookOptions = 
             return;
         }
 
-        setLoading(true);
+        const isGuest = userId === GUEST_USER_ID;
+        const cached = isGuest ? readGuestCache<Province[]>('guest-provinces') : null;
+
+        if (cached) {
+            setProvinces(cached.data);
+            setLoading(false);
+        } else {
+            setLoading(true);
+        }
+
         try {
             const baseProvinces = await fetchProvinces();
 
@@ -89,6 +143,9 @@ export function useProvinces(userId: string | undefined, options: HookOptions = 
                 // Fetch ALL visits from ALL users (shared journal)
                 const provincesWithVisits = await fetchProvincesWithUserVisits('', baseProvinces);
                 setProvinces(provincesWithVisits);
+                if (isGuest) {
+                    writeGuestCache('guest-provinces', provincesWithVisits);
+                }
             } else {
                 setProvinces(baseProvinces);
             }
@@ -199,12 +256,24 @@ export function useAnniversaries(userId: string | undefined, options: HookOption
             return;
         }
 
-        setLoading(true);
+        const isGuest = userId === GUEST_USER_ID;
+        const cached = isGuest ? readGuestCache<Anniversary[]>('guest-anniversaries') : null;
+
+        if (cached) {
+            setAnniversaries(cached.data);
+            setLoading(false);
+        } else {
+            setLoading(true);
+        }
+
         try {
             const data = userId === GUEST_USER_ID
                 ? await fetchAllAnniversaries()
                 : await fetchAnniversaries(userId);
             setAnniversaries(data);
+            if (isGuest) {
+                writeGuestCache('guest-anniversaries', data);
+            }
             setError(null);
         } catch (err) {
             setError(err instanceof Error ? err : new Error('Failed to fetch anniversaries'));

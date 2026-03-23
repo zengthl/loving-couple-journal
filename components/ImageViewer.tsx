@@ -6,6 +6,7 @@ interface ImageViewerProps {
     imageUrl: string;
     onClose: () => void;
     onDelete?: () => void;
+    isGuest?: boolean;
 }
 
 // Helper to check if URL is a video
@@ -51,7 +52,8 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
     isOpen,
     imageUrl,
     onClose,
-    onDelete
+    onDelete,
+    isGuest = false
 }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -124,7 +126,6 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
             {/* Bottom Action Bar */}
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
                 <div className="flex items-center justify-center gap-6">
-                    {/* Video Play/Pause Button */}
                     {isVideo && (
                         <button
                             onClick={togglePlay}
@@ -135,17 +136,17 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
                         </button>
                     )}
 
-                    {/* Download Button */}
-                    <button
-                        onClick={handleDownload}
-                        className="bg-primary/80 hover:bg-primary text-white px-5 py-2 rounded-full backdrop-blur-md flex items-center gap-2 transition-all active:scale-95"
-                    >
-                        <Download size={18} />
-                        <span className="text-sm font-bold">下载原图</span>
-                    </button>
+                    {!isGuest && (
+                        <button
+                            onClick={handleDownload}
+                            className="bg-primary/80 hover:bg-primary text-white px-5 py-2 rounded-full backdrop-blur-md flex items-center gap-2 transition-all active:scale-95"
+                        >
+                            <Download size={18} />
+                            <span className="text-sm font-bold">下载原图</span>
+                        </button>
+                    )}
 
-                    {/* Delete Button */}
-                    {onDelete && (
+                    {!isGuest && onDelete && (
                         <button
                             onClick={() => {
                                 if (window.confirm('确定要删除这张照片吗？')) {

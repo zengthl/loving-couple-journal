@@ -74,7 +74,7 @@ export const CityTimelineScreen: React.FC<CityTimelineScreenProps> = ({
               {provinceName} · 时间线
             </p>
           </div>
-          {visits.length > 0 && (
+          {visits.length > 0 && !isGuest && (
             <button
               onClick={() => setIsSelectMode(!isSelectMode)}
               className="text-sm text-primary font-medium"
@@ -172,7 +172,7 @@ export const CityTimelineScreen: React.FC<CityTimelineScreenProps> = ({
       </div>
 
       {/* Selection Mode Actions */}
-      {isSelectMode && selectedPhotos.size > 0 && (
+      {!isGuest && isSelectMode && selectedPhotos.size > 0 && (
         <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-30 bg-white/95 backdrop-blur-lg rounded-full shadow-floating px-6 py-3 flex items-center gap-4">
           <span className="text-sm text-text-sub">
             已选择 {selectedPhotos.size} 张

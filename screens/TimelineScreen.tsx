@@ -38,6 +38,9 @@ export const TimelineScreen: React.FC<TimelineScreenProps> = ({
   });
 
   const handleLongPressStart = (event: TimelineEvent) => {
+    if (isGuest) {
+      return;
+    }
     isLongPress.current = false;
     longPressTimer.current = setTimeout(() => {
       isLongPress.current = true;
@@ -204,12 +207,12 @@ export const TimelineScreen: React.FC<TimelineScreenProps> = ({
 
                       <div
                         onClick={() => handleClick(event)}
-                        onTouchStart={() => handleLongPressStart(event)}
-                        onTouchEnd={handleLongPressEnd}
-                        onTouchCancel={handleLongPressEnd}
-                        onMouseDown={() => handleLongPressStart(event)}
-                        onMouseUp={handleLongPressEnd}
-                        onMouseLeave={handleLongPressEnd}
+                        onTouchStart={isGuest ? undefined : () => handleLongPressStart(event)}
+                        onTouchEnd={isGuest ? undefined : handleLongPressEnd}
+                        onTouchCancel={isGuest ? undefined : handleLongPressEnd}
+                        onMouseDown={isGuest ? undefined : () => handleLongPressStart(event)}
+                        onMouseUp={isGuest ? undefined : handleLongPressEnd}
+                        onMouseLeave={isGuest ? undefined : handleLongPressEnd}
                         className="cursor-pointer select-none rounded-2xl bg-white p-3 shadow-card transition-all duration-300 hover:shadow-soft active:scale-[0.98]"
                       >
                         {renderPreviewMedia(event, eventIndex)}
@@ -240,9 +243,9 @@ export const TimelineScreen: React.FC<TimelineScreenProps> = ({
                           </div>
                         </div>
 
-                        <div className="mt-2 text-center">
+                        {!isGuest && <div className="mt-2 text-center">
                           <span className="text-[10px] text-gray-300">长按可删除</span>
-                        </div>
+                        </div>}
                       </div>
                     </div>
                   );
@@ -258,6 +261,7 @@ export const TimelineScreen: React.FC<TimelineScreenProps> = ({
           isOpen={!!viewingEvent}
           item={viewingEvent}
           type="timeline"
+          isGuest={isGuest}
           onClose={() => setViewingEvent(null)}
           onDelete={onDeleteEvent}
           onUpdate={onUpdateEvent}

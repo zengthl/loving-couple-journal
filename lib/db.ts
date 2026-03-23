@@ -1,5 +1,7 @@
 import { supabase, DbTimelineEvent, DbProvince, DbDiscoveryItem, DbAnniversary } from './supabase';
-import { TimelineEvent, Province, DiscoveryItem, Anniversary } from '../types';
+import { TimelineEvent, Province, DiscoveryItem, Anniversary, ProvinceVisit, CitySummary } from '../types';
+const GUEST_VISIT_CACHE_TTL_MS = 5 * 60 * 1000;
+const guestProvinceVisitCache = new Map<string, { timestamp: number; data: ProvinceVisit[] }>();
 
 // ==================== Timeline Events ====================
 
@@ -583,7 +585,6 @@ export async function removeImageFromTimelineEvents(userId: string, imageUrl: st
 
 // ==================== Province Visit Management (Timeline Feature) ====================
 
-import { ProvinceVisit, CitySummary } from '../types';
 import { DbProvinceVisit } from './supabase';
 
 function toProvinceVisit(db: DbProvinceVisit): ProvinceVisit {
@@ -600,6 +601,14 @@ function toProvinceVisit(db: DbProvinceVisit): ProvinceVisit {
 
 // Fetch all visits for a province, grouped by city
 export async function fetchProvinceVisits(userId: string, provinceId: string): Promise<ProvinceVisit[]> {
+    if (!userId) {
+        const cacheKey = `province-visits:${provinceId}`;
+        const cached = guestProvinceVisitCache.get(cacheKey);
+        if (cached && Date.now() - cached.timestamp < GUEST_VISIT_CACHE_TTL_MS) {
+            return cached.data;
+        }
+    }
+
     let query = supabase
         .from('user_province_visits')
         .select('id, user_id, province_id, visit_date, photos, city, created_at')
@@ -616,7 +625,16 @@ export async function fetchProvinceVisits(userId: string, provinceId: string): P
         return [];
     }
 
-    return (data || []).map(toProvinceVisit);
+    const visits = (data || []).map(toProvinceVisit);
+
+    if (!userId) {
+        guestProvinceVisitCache.set(`province-visits:${provinceId}`, {
+            timestamp: Date.now(),
+            data: visits
+        });
+    }
+
+    return visits;
 }
 
 // Group visits by city for city selection screen

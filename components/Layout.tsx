@@ -77,13 +77,15 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeScreen, onNaviga
             <span className="text-[10px] font-medium">相册</span>
           </button>
 
-          <div className="relative -top-5">
-            <button
-              onClick={() => onNavigate(ScreenName.PUBLISH)}
-              className={`flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-transform active:scale-95 hover:scale-105 ${isGuest ? 'cursor-not-allowed bg-gray-300 text-gray-500 shadow-gray-200/40' : 'bg-primary text-white shadow-primary/40'}`}
-            >
-              <Plus className="h-8 w-8" strokeWidth={3} />
-            </button>
+          <div className="relative -top-5 flex h-14 w-14 items-center justify-center">
+            {!isGuest && (
+              <button
+                onClick={() => onNavigate(ScreenName.PUBLISH)}
+                className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-lg shadow-primary/40 transition-transform active:scale-95 hover:scale-105"
+              >
+                <Plus className="h-8 w-8" strokeWidth={3} />
+              </button>
+            )}
           </div>
 
           <button

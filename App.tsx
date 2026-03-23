@@ -1,4 +1,4 @@
-import React, { useState, lazy, Suspense } from 'react';
+import React, { useEffect, useState, lazy, Suspense } from 'react';
 import { Layout } from './components/Layout';
 import { ScreenName, TimelineEvent, Province, DiscoveryItem, Anniversary } from './types';
 
@@ -62,6 +62,8 @@ export default function App() {
   const [activeScreen, setActiveScreen] = useState<ScreenName>(ScreenName.TIMELINE);
   const [isGuest, setIsGuest] = useState(false);
   const [guestToast, setGuestToast] = useState(false);
+  const [guestWarmTravel, setGuestWarmTravel] = useState(false);
+  const [guestWarmAnniversaries, setGuestWarmAnniversaries] = useState(false);
 
   // Auth state
   const { user: authUser, loading: authLoading, isAuthenticated: isRealAuth } = useAuth();
@@ -88,8 +90,8 @@ export default function App() {
   };
 
   const shouldLoadTimeline = isAuthenticated;
-  const shouldLoadTravel = isAuthenticated && [ScreenName.MAP, ScreenName.UPLOAD, ScreenName.ALBUM_LIST].includes(activeScreen);
-  const shouldLoadAnniversaries = isAuthenticated && activeScreen === ScreenName.ANNIVERSARY;
+  const shouldLoadTravel = isAuthenticated && (guestWarmTravel || [ScreenName.MAP, ScreenName.UPLOAD, ScreenName.ALBUM_LIST].includes(activeScreen));
+  const shouldLoadAnniversaries = isAuthenticated && (guestWarmAnniversaries || activeScreen === ScreenName.ANNIVERSARY);
 
   // Only fetch the data needed by the active route.
   const { events: timelineEvents, loading: timelineLoading, addEvent, reload: reloadTimeline } = useTimelineEvents(effectiveUserId, { enabled: shouldLoadTimeline });
@@ -144,6 +146,32 @@ export default function App() {
     setIsGuest(true);
     setActiveScreen(screen);
   };
+
+  useEffect(() => {
+    if (!isGuest) {
+      setGuestWarmTravel(false);
+      setGuestWarmAnniversaries(false);
+      return;
+    }
+
+    const warm = () => {
+      setGuestWarmTravel(true);
+      setGuestWarmAnniversaries(true);
+    };
+
+    const idleHost = window as Window & {
+      requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
+      cancelIdleCallback?: (handle: number) => void;
+    };
+
+    if (typeof idleHost.requestIdleCallback === 'function') {
+      const idleId = idleHost.requestIdleCallback(() => warm(), { timeout: 1200 });
+      return () => idleHost.cancelIdleCallback?.(idleId);
+    }
+
+    const timeoutId = window.setTimeout(warm, 600);
+    return () => window.clearTimeout(timeoutId);
+  }, [isGuest]);
 
   // Handle publishing new item (Food, Goods, Shop, Fun)
   const handlePublish = async (data: Omit<DiscoveryItem, 'id' | 'checked'>) => {

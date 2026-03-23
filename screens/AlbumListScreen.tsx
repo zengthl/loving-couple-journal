@@ -390,7 +390,7 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({
           setCitySummaries(groupVisitsByCity(visits));
           onRefresh();
         }}
-        onDownloadPhoto={handleDownloadPhoto}
+        onDownloadPhoto={isGuest ? async () => {} : handleDownloadPhoto}
         isGuest={isGuest}
       />
     );
@@ -439,15 +439,17 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({
               </button>
             ) : (
               <>
-                <button
-                  onClick={() => setIsSelectMode(true)}
-                  className="text-primary text-sm font-medium"
-                >
+                {!isGuest && (
+                  <button
+                    onClick={() => setIsSelectMode(true)}
+                    className="text-primary text-sm font-medium"
+                  >
                   选择
-                </button>
+                  </button>
+                )}
                 <button
                   onClick={handleDownloadAll}
-                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100"
+                  className={`${isGuest ? 'hidden ' : ''}w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100`}
                   title="下载全部"
                 >
                   <Download size={20} className="text-text-main" />
@@ -471,7 +473,7 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({
         </header>
 
         {/* Selection Mode Toolbar */}
-        {isSelectMode && (
+        {!isGuest && isSelectMode && (
           <div className="sticky top-[57px] z-10 bg-gray-50 px-4 py-2 flex items-center justify-between border-b border-gray-100">
             <button onClick={handleSelectAll} className="text-sm text-primary font-medium">
               {selectedPhotos.size === photos.length ? '取消全选' : '全选'}
@@ -649,7 +651,8 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({
           isOpen={!!viewingPhoto}
           imageUrl={viewingPhoto || ''}
           onClose={() => setViewingPhoto(null)}
-          onDelete={handleDeletePhoto}
+          onDelete={isGuest ? undefined : handleDeletePhoto}
+          isGuest={!!isGuest}
         />
       </div>
     );

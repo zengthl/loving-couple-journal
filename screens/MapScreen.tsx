@@ -32,7 +32,7 @@ const ChartFallback = () => (
   </div>
 );
 
-export const MapScreen: React.FC<MapScreenProps> = ({ provinces, onNavigateToUpload, onNavigateToAlbums }) => {
+export const MapScreen: React.FC<MapScreenProps> = ({ provinces, onNavigateToUpload, onNavigateToAlbums, isGuest }) => {
   const [selectedProvince, setSelectedProvince] = useState<Province | null>(null);
   const [showMenu, setShowMenu] = useState(false);
 
@@ -59,14 +59,23 @@ export const MapScreen: React.FC<MapScreenProps> = ({ provinces, onNavigateToUpl
           </div>
 
           <div className="relative">
+            {isGuest && (
+              <button
+                onClick={onNavigateToAlbums}
+                className="absolute right-0 top-0 z-50 flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-text-main shadow-sm transition-colors hover:text-primary"
+              >
+                <BookOpen size={16} />
+                相册
+              </button>
+            )}
             <button
               onClick={() => setShowMenu((current) => !current)}
-              className="relative z-50 flex h-10 w-10 items-center justify-center rounded-full bg-white text-gray-400 shadow-sm transition-colors hover:text-primary"
+              className={`${isGuest ? 'invisible pointer-events-none' : ''} relative z-50 flex h-10 w-10 items-center justify-center rounded-full bg-white text-gray-400 shadow-sm transition-colors hover:text-primary`}
             >
               {showMenu ? <X size={20} /> : <Menu size={20} />}
             </button>
 
-            {showMenu && (
+            {!isGuest && showMenu && (
               <div className="absolute right-0 top-12 z-40 flex min-w-[160px] flex-col gap-1 rounded-2xl border border-gray-100 bg-white p-2 shadow-xl origin-top-right animate-fade-in">
                 <button
                   onClick={() => {
