@@ -20,7 +20,6 @@ interface AlbumListScreenProps {
 
 const LIVE_PHOTO_MAX_SECONDS = 4.5;
 const LIVE_PHOTO_PRESS_DELAY_MS = 200;
-const getInitialProvinceCount = () => (typeof window !== 'undefined' && window.innerWidth < 640 ? 6 : 10);
 const getInitialPhotoCount = () => (typeof window !== 'undefined' && window.innerWidth < 640 ? 12 : 24);
 
 // Download file function
@@ -90,12 +89,10 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({
 
   // Live photo detection
   const [livePhotoMap, setLivePhotoMap] = useState<Record<string, boolean>>({});
-  const [visibleProvinceCount, setVisibleProvinceCount] = useState(getInitialProvinceCount);
   const [visiblePhotoCount, setVisiblePhotoCount] = useState(getInitialPhotoCount);
   const [isProvinceLoading, setIsProvinceLoading] = useState(false);
 
   const visitedProvinces = provinces.filter(p => p.visited);
-  const visibleVisitedProvinces = visitedProvinces.slice(0, visibleProvinceCount);
 
   const refreshProvinceVisits = useCallback(async (provinceId: string) => {
     const visits = await fetchProvinceVisits('', provinceId);
@@ -354,10 +351,6 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({
   };
 
   useEffect(() => {
-    setVisibleProvinceCount(getInitialProvinceCount());
-  }, [provinces]);
-
-  useEffect(() => {
     setVisiblePhotoCount(getInitialPhotoCount());
   }, [viewMode, selectedProvince?.id, selectedCity, cityVisits.length]);
 
@@ -372,7 +365,7 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({
     };
 
     const prefetch = async () => {
-      const hotProvinces = visibleVisitedProvinces.slice(0, 4);
+      const hotProvinces = visitedProvinces.slice(0, 4);
       for (const province of hotProvinces) {
         await fetchProvinceVisits('', province.id);
       }
@@ -385,7 +378,7 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({
 
     const timeoutId = window.setTimeout(prefetch, 500);
     return () => window.clearTimeout(timeoutId);
-  }, [viewMode, visibleVisitedProvinces]);
+  }, [viewMode, visitedProvinces]);
 
   // Render City Selection Screen
   if (viewMode === AlbumViewMode.CITY_SELECT && selectedProvince) {
@@ -770,7 +763,7 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({
 
       <div className="flex-1 overflow-y-auto p-4">
         <div className="grid grid-cols-2 gap-4">
-          {visibleVisitedProvinces.map(province => {
+          {visitedProvinces.map(province => {
             const firstPhoto = province.photos[0];
             const isFirstPhotoVideo = firstPhoto && isVideoUrl(firstPhoto);
 
@@ -817,16 +810,6 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({
             <span className="text-xs font-bold">更多足迹等你点亮</span>
           </div>
         </div>
-        {visibleProvinceCount < visitedProvinces.length && (
-          <div className="flex justify-center pt-4">
-            <button
-              onClick={() => setVisibleProvinceCount((current) => current + 10)}
-              className="rounded-full bg-white px-4 py-2 text-sm font-medium text-text-sub shadow-sm transition-colors hover:text-primary"
-            >
-              加载更多相册
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );
