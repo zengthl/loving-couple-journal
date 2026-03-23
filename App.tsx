@@ -9,6 +9,7 @@ const MapScreen = lazy(() => import('./screens/MapScreen').then(m => ({ default:
 const PublishScreen = lazy(() => import('./screens/PublishScreen').then(m => ({ default: m.PublishScreen })));
 const UploadScreen = lazy(() => import('./screens/UploadScreen').then(m => ({ default: m.UploadScreen })));
 const AlbumListScreen = lazy(() => import('./screens/AlbumListScreen').then(m => ({ default: m.AlbumListScreen })));
+const MessageBoardScreen = lazy(() => import('./screens/MessageBoardScreen').then(m => ({ default: m.MessageBoardScreen })));
 const LoginScreen = lazy(() => import('./screens/LoginScreen').then(m => ({ default: m.LoginScreen })));
 import { deleteTimelineEvent, removeImageFromTimelineEvents, removePhotoFromUserProvinces, updateTimelineEvent } from './lib/db';
 import { useTimelineEvents, useProvinces, useDiscoveryItems, useAnniversaries } from './lib/hooks';
@@ -139,6 +140,11 @@ export default function App() {
     setActiveScreen(ScreenName.TIMELINE);
   };
 
+  const handleGuestNavigate = (screen: ScreenName) => {
+    setIsGuest(true);
+    setActiveScreen(screen);
+  };
+
   // Handle publishing new item (Food, Goods, Shop, Fun)
   const handlePublish = async (data: Omit<DiscoveryItem, 'id' | 'checked'>) => {
     // 1. Add to Discovery
@@ -228,7 +234,11 @@ export default function App() {
     if (!isAuthenticated) {
       return (
         <Suspense fallback={<PageLoader />}>
-          <LoginScreen onLoginSuccess={() => setActiveScreen(ScreenName.TIMELINE)} onGuestLogin={handleGuestLogin} />
+          <LoginScreen
+            onLoginSuccess={() => setActiveScreen(ScreenName.TIMELINE)}
+            onGuestLogin={handleGuestLogin}
+            onGuestNavigate={handleGuestNavigate}
+          />
         </Suspense>
       );
     }
@@ -318,6 +328,12 @@ export default function App() {
               onDeletePhoto={isGuest ? async () => { showGuestToast(); } : handleSyncDeleteFromAlbum}
               isGuest={isGuest}
             />
+          </Suspense>
+        );
+      case ScreenName.MESSAGE_BOARD:
+        return (
+          <Suspense fallback={<PageLoader />}>
+            <MessageBoardScreen onBack={() => setActiveScreen(ScreenName.TIMELINE)} />
           </Suspense>
         );
       default:

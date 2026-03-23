@@ -7,16 +7,17 @@ import {
   Lock,
   LogIn,
   Mail,
-  Menu,
   UserPlus,
   X,
   type LucideIcon,
 } from 'lucide-react';
 import { signIn, signUp } from '../lib/auth';
+import { ScreenName } from '../types';
 
 interface LoginScreenProps {
   onLoginSuccess: () => void;
   onGuestLogin: () => void;
+  onGuestNavigate: (screen: ScreenName) => void;
 }
 
 type AuthMode = 'login' | 'register';
@@ -64,7 +65,11 @@ const AuthField: React.FC<AuthFieldProps> = ({
   </label>
 );
 
-export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onGuestLogin }) => {
+export const LoginScreen: React.FC<LoginScreenProps> = ({
+  onLoginSuccess,
+  onGuestLogin,
+  onGuestNavigate,
+}) => {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [mode, setMode] = useState<AuthMode>('login');
   const [email, setEmail] = useState('');
@@ -155,6 +160,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onGues
     setLoading(false);
   };
 
+  const navigateAsGuest = (screen: ScreenName) => {
+    onGuestNavigate(screen);
+  };
+
   return (
     <div className="relative min-h-[100svh] overflow-hidden bg-[#09070d] text-white">
       <img
@@ -183,14 +192,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onGues
 
       <button
         type="button"
-        onClick={() => (isAuthOpen ? closePanel() : openPanel('login'))}
-        className="landing-instruction absolute right-4 top-[max(1rem,env(safe-area-inset-top))] z-30 inline-flex items-center gap-2 rounded-full border border-white/12 bg-black/18 px-4 py-2 text-[12px] font-semibold tracking-[0.14em] text-white/92"
+        onClick={() => openPanel('login')}
+        className="landing-instruction absolute right-4 top-[max(1rem,env(safe-area-inset-top))] z-30 inline-flex items-center rounded-full border border-white/12 bg-black/18 px-4 py-2 text-[12px] font-semibold tracking-[0.12em] text-white/92"
       >
-        {isAuthOpen ? <X size={16} /> : <Menu size={16} />}
-        <span>{isAuthOpen ? '收起' : '登录'}</span>
+        登录 / 注册
       </button>
 
-      <main className="relative z-10 flex min-h-[100svh] flex-col px-8 pb-[max(2rem,env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))] text-center">
+      <main className="relative z-10 flex min-h-[100svh] flex-col px-8 pb-[max(1.8rem,env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))] text-center">
         <div className="pt-10">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/10 px-4 py-2 text-[11px] font-semibold tracking-[0.28em] text-white/90 uppercase backdrop-blur-md">
             <Heart size={13} className="fill-current" />
@@ -198,27 +206,21 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onGues
           </div>
         </div>
 
-        <div className="mt-auto pb-10">
+        <div className="mt-auto pb-8">
           <div className="mx-auto max-w-[18rem] animate-[fadeIn_0.9s_ease-out]">
             <h1 className="text-[3.7rem] leading-[0.88] text-white drop-shadow-[0_10px_28px_rgba(0,0,0,0.25)] [font-family:'Dancing_Script','Times_New_Roman',cursive]">
               Our Forever
               <span className="block">Begins Here</span>
             </h1>
 
-            <p className="mt-4 text-[14px] leading-7 text-white/86 [font-family:'Manrope','Noto_Sans_SC',sans-serif]">
-              A quiet space for our loudest laughs
-              <br />
-              and softest whispers.
-            </p>
-
-            <div className="mt-9 flex items-center justify-center gap-3">
+            <div className="mt-8 flex items-center justify-center gap-3">
               <button
                 type="button"
-                onClick={() => openPanel('login')}
-                className="inline-flex min-w-[8.5rem] items-center justify-center gap-2 rounded-full bg-[#b5337f] px-5 py-4 text-[13px] font-semibold tracking-[0.1em] text-white shadow-[0_18px_45px_rgba(181,51,127,0.35)] transition-transform hover:scale-[1.02]"
+                onClick={onGuestLogin}
+                className="inline-flex min-w-[8.8rem] items-center justify-center gap-2 rounded-full bg-[#b5337f] px-5 py-4 text-[13px] font-semibold tracking-[0.1em] text-white shadow-[0_18px_45px_rgba(181,51,127,0.35)] transition-transform hover:scale-[1.02]"
               >
-                <LogIn size={16} />
-                账号登录
+                <ArrowRight size={16} />
+                访客登录
               </button>
 
               <button
@@ -233,23 +235,37 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onGues
 
             <button
               type="button"
-              onClick={onGuestLogin}
-              className="mt-6 inline-flex items-center gap-2 text-[15px] font-medium text-white/86 transition-colors hover:text-white"
+              onClick={() => openPanel('login')}
+              className="mt-5 inline-flex items-center gap-2 text-[15px] font-medium text-white/86 transition-colors hover:text-white"
             >
-              访客登录
+              账号登录
               <ArrowRight size={16} />
             </button>
           </div>
         </div>
 
-        <footer className="pb-2 text-center text-white/68 [font-family:'Manrope','Noto_Sans_SC',sans-serif]">
-          <div className="text-sm font-semibold">Kinetic Love Letter</div>
+        <footer className="pb-2 text-center text-white/70 [font-family:'Manrope','Noto_Sans_SC',sans-serif]">
+          <button
+            type="button"
+            onClick={() => navigateAsGuest(ScreenName.MESSAGE_BOARD)}
+            className="text-sm font-semibold transition-colors hover:text-white"
+          >
+            留言板
+          </button>
+
           <div className="mt-3 flex items-center justify-center gap-5 text-[13px]">
-            <span>Our Story</span>
-            <span>Privacy</span>
-            <span>Terms</span>
+            <button type="button" onClick={() => navigateAsGuest(ScreenName.TIMELINE)} className="transition-colors hover:text-white">
+              动态
+            </button>
+            <button type="button" onClick={() => navigateAsGuest(ScreenName.ALBUM_LIST)} className="transition-colors hover:text-white">
+              相册
+            </button>
+            <button type="button" onClick={() => navigateAsGuest(ScreenName.ANNIVERSARY)} className="transition-colors hover:text-white">
+              纪念日
+            </button>
           </div>
-          <div className="mt-3 text-[12px] text-white/54">© 2024 Kinetic Love Letter. All rights reserved.</div>
+
+          <div className="mt-3 text-[12px] text-white/54">© 2026 ZTHL＆DYQ. ALL rights reserved.</div>
         </footer>
       </main>
 
@@ -262,13 +278,24 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onGues
             className="landing-panel w-[min(22rem,calc(100vw-2rem))] rounded-[30px] p-5 text-left text-white animate-[panelRise_0.35s_cubic-bezier(0.22,1,0.36,1)]"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="mb-5">
-              <p className="text-[11px] font-semibold tracking-[0.24em] text-white/55 uppercase">
-                {mode === 'login' ? 'Welcome Back' : 'Create Your Place'}
-              </p>
-              <h2 className="mt-2 text-[1.75rem] font-bold tracking-[-0.04em] text-white [font-family:'Noto_Serif_SC','Noto_Sans_SC',serif]">
-                {mode === 'login' ? '登录 Loving' : '注册 Loving'}
-              </h2>
+            <div className="mb-5 flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[11px] font-semibold tracking-[0.24em] text-white/55 uppercase">
+                  {mode === 'login' ? 'Welcome Back' : 'Create Your Place'}
+                </p>
+                <h2 className="mt-2 text-[1.75rem] font-bold tracking-[-0.04em] text-white [font-family:'Noto_Serif_SC','Noto_Sans_SC',serif]">
+                  {mode === 'login' ? '登录 Loving' : '注册 Loving'}
+                </h2>
+              </div>
+
+              <button
+                type="button"
+                onClick={closePanel}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-white/8 text-white/80 transition-colors hover:bg-white/14 hover:text-white"
+                aria-label="关闭登录面板"
+              >
+                <X size={18} />
+              </button>
             </div>
 
             <div className="mb-5 flex items-center gap-2 rounded-full bg-white/8 p-1">
@@ -389,18 +416,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onGues
                 </button>
               </form>
             )}
-
-            <button
-              type="button"
-              onClick={() => {
-                closePanel();
-                onGuestLogin();
-              }}
-              className="mt-4 inline-flex items-center gap-2 text-sm text-white/72 transition-colors hover:text-white"
-            >
-              先以访客模式浏览
-              <ArrowRight size={15} />
-            </button>
           </div>
         </div>
       )}

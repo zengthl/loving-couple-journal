@@ -3,6 +3,7 @@ export enum ScreenName {
   TIMELINE = 'timeline',
   MAP = 'map',
   ANNIVERSARY = 'anniversary',
+  MESSAGE_BOARD = 'message_board',
   PUBLISH = 'publish',
   PROFILE = 'profile',
   UPLOAD = 'upload',

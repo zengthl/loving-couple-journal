@@ -18,6 +18,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeScreen, onNaviga
     ScreenName.ALBUM_LIST,
     ScreenName.MAP,
     ScreenName.ANNIVERSARY,
+    ScreenName.MESSAGE_BOARD,
   ].includes(activeScreen);
 
   const showUserInfo = !!user && showBottomNav;
