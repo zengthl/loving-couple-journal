@@ -190,21 +190,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         </div>
       </span>
 
-      <button
-        type="button"
-        onClick={() => openPanel('login')}
-        className="landing-instruction absolute right-4 top-[max(1rem,env(safe-area-inset-top))] z-30 inline-flex items-center rounded-full border border-white/12 bg-black/18 px-4 py-2 text-[12px] font-semibold tracking-[0.12em] text-white/92"
-      >
-        登录 / 注册
-      </button>
-
       <main className="relative z-10 flex min-h-[100svh] flex-col px-8 pb-[max(1.8rem,env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))] text-center">
-        <div className="pt-10">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/10 px-4 py-2 text-[11px] font-semibold tracking-[0.28em] text-white/90 uppercase backdrop-blur-md">
-            <Heart size={13} className="fill-current" />
-            LOVING
-          </div>
-        </div>
+        <div className="pt-10" />
 
         <div className="mt-auto pb-8">
           <div className="mx-auto max-w-[18rem] animate-[fadeIn_0.9s_ease-out]">
@@ -236,7 +223,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             <button
               type="button"
               onClick={() => openPanel('login')}
-              className="mt-5 inline-flex items-center gap-2 text-[15px] font-medium text-white/86 transition-colors hover:text-white"
+              className="mt-5 inline-flex items-center gap-2 text-[15px] font-medium text-white/86 [font-family:'Manrope','Noto_Sans_SC',sans-serif] transition-colors hover:text-white"
             >
               账号登录
               <ArrowRight size={16} />
@@ -248,19 +235,19 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           <button
             type="button"
             onClick={() => navigateAsGuest(ScreenName.MESSAGE_BOARD)}
-            className="text-sm font-semibold transition-colors hover:text-white"
+            className="text-[15px] font-medium transition-colors hover:text-white"
           >
             留言板
           </button>
 
-          <div className="mt-3 flex items-center justify-center gap-5 text-[13px]">
-            <button type="button" onClick={() => navigateAsGuest(ScreenName.TIMELINE)} className="transition-colors hover:text-white">
+          <div className="mt-3 flex items-center justify-center gap-5 text-[15px]">
+            <button type="button" onClick={() => navigateAsGuest(ScreenName.TIMELINE)} className="font-medium transition-colors hover:text-white">
               动态
             </button>
-            <button type="button" onClick={() => navigateAsGuest(ScreenName.ALBUM_LIST)} className="transition-colors hover:text-white">
+            <button type="button" onClick={() => navigateAsGuest(ScreenName.ALBUM_LIST)} className="font-medium transition-colors hover:text-white">
               相册
             </button>
-            <button type="button" onClick={() => navigateAsGuest(ScreenName.ANNIVERSARY)} className="transition-colors hover:text-white">
+            <button type="button" onClick={() => navigateAsGuest(ScreenName.ANNIVERSARY)} className="font-medium transition-colors hover:text-white">
               纪念日
             </button>
           </div>

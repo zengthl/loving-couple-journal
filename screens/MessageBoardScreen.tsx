@@ -14,26 +14,7 @@ interface MessageBoardScreenProps {
 
 const STORAGE_KEY = 'loving-message-board-v1';
 
-const seedMessages: MessageBoardEntry[] = [
-  {
-    id: 'seed-1',
-    author: 'ZTHL',
-    content: '以后每次看到晚霞，都想起我们牵着手往海里走的那一刻。',
-    createdAt: '2026-03-20T20:16:00.000Z',
-  },
-  {
-    id: 'seed-2',
-    author: 'DYQ',
-    content: '如果爱有形状，那应该就是我们一起留下来的这些小日子。',
-    createdAt: '2026-03-21T10:28:00.000Z',
-  },
-  {
-    id: 'seed-3',
-    author: 'Visitor',
-    content: '愿看到这里的人，也都能被认真地爱着。',
-    createdAt: '2026-03-22T14:08:00.000Z',
-  },
-];
+const removedSeedIds = new Set(['seed-1', 'seed-2', 'seed-3']);
 
 const formatMessageTime = (value: string) =>
   new Intl.DateTimeFormat('zh-CN', {
@@ -44,7 +25,7 @@ const formatMessageTime = (value: string) =>
   }).format(new Date(value));
 
 export const MessageBoardScreen: React.FC<MessageBoardScreenProps> = ({ onBack }) => {
-  const [messages, setMessages] = useState<MessageBoardEntry[]>(seedMessages);
+  const [messages, setMessages] = useState<MessageBoardEntry[]>([]);
   const [author, setAuthor] = useState('');
   const [content, setContent] = useState('');
 
@@ -53,12 +34,12 @@ export const MessageBoardScreen: React.FC<MessageBoardScreenProps> = ({ onBack }
       const stored = window.localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored) as MessageBoardEntry[];
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setMessages(parsed);
+        if (Array.isArray(parsed)) {
+          setMessages(parsed.filter((message) => !removedSeedIds.has(message.id)));
         }
       }
     } catch {
-      // Fall back to seed messages if localStorage is unavailable.
+      // Keep the board empty if localStorage is unavailable.
     }
   }, []);
 
@@ -123,7 +104,7 @@ export const MessageBoardScreen: React.FC<MessageBoardScreenProps> = ({ onBack }
           </div>
 
           <p className="mt-3 text-sm leading-6 text-text-sub">
-            把想说的话留在这里，让每一次打开都能看到新的温柔。
+            把想说的话留在这里
           </p>
 
           <div className="mt-5 space-y-3">
