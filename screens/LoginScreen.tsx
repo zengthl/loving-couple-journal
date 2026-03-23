@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {
   ArrowRight,
+  Heart,
   KeyRound,
   Loader2,
   Lock,
@@ -202,17 +203,57 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onGues
       </button>
 
       <main className="relative z-10 flex min-h-[100svh] flex-col justify-between px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(1.25rem,env(safe-area-inset-top))]">
-        <div />
+        <div className="pt-6">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/10 px-3 py-1.5 text-[11px] font-semibold tracking-[0.28em] text-white/88 uppercase backdrop-blur-md">
+            <Heart size={13} className="fill-current" />
+            Loving
+          </div>
+        </div>
 
         <div className="pb-7">
-          <div className="landing-instruction inline-flex items-center gap-3 rounded-full border border-white/12 bg-white/10 px-4 py-3 text-left text-white/90">
-            <span className="inline-flex h-2.5 w-2.5 rounded-full bg-[#f7b2cf] shadow-[0_0_18px_rgba(247,178,207,0.65)]" />
-            <div>
-              <p className="text-[11px] font-semibold tracking-[0.24em] uppercase text-white/62">
-                Guest Entry
-              </p>
-              <p className="mt-1 text-sm">点击屏幕任意位置立即进入</p>
-            </div>
+          <div className="max-w-[16rem] animate-[fadeIn_0.9s_ease-out]">
+            <p className="text-[11px] font-semibold tracking-[0.28em] text-white/62 uppercase">
+              Couple Journal
+            </p>
+            <h1 className="mt-3 text-[2.65rem] font-black leading-[1.02] tracking-[-0.055em] text-white [font-family:'Noto_Serif_SC','Noto_Sans_SC',serif]">
+              把心动
+              <span className="block">收藏成日记</span>
+            </h1>
+            <p className="mt-4 max-w-[14rem] text-[14px] leading-6 text-white/76 [font-family:'Manrope','Noto_Sans_SC',sans-serif]">
+              轻触任意位置，先以访客模式进入。
+              登录与注册入口已经收在右上角。
+            </p>
+          </div>
+
+          <div className="mt-7">
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                onGuestLogin();
+              }}
+              className="landing-instruction inline-flex w-full max-w-[21rem] items-center gap-3 rounded-full border border-white/12 bg-white/10 px-4 py-4 text-left text-white/90"
+            >
+              <span className="inline-flex h-2.5 w-2.5 rounded-full bg-[#f7b2cf] shadow-[0_0_18px_rgba(247,178,207,0.65)]" />
+              <div>
+                <p className="text-[11px] font-semibold tracking-[0.24em] uppercase text-white/62">
+                  Guest Entry
+                </p>
+                <p className="mt-1 text-sm">点击屏幕任意位置立即进入</p>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                openPanel('login');
+              }}
+              className="mt-4 inline-flex items-center gap-2 pl-2 text-sm text-white/72 transition-colors hover:text-white"
+            >
+              账号登录
+              <ArrowRight size={15} />
+            </button>
           </div>
         </div>
       </main>
