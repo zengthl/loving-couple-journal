@@ -88,8 +88,11 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({
 
   // Live photo detection
   const [livePhotoMap, setLivePhotoMap] = useState<Record<string, boolean>>({});
+  const [visibleProvinceCount, setVisibleProvinceCount] = useState(10);
+  const [visiblePhotoCount, setVisiblePhotoCount] = useState(36);
 
   const visitedProvinces = provinces.filter(p => p.visited);
+  const visibleVisitedProvinces = visitedProvinces.slice(0, visibleProvinceCount);
 
   const refreshProvinceVisits = useCallback(async (provinceId: string) => {
     const visits = await fetchProvinceVisits('', provinceId);
@@ -342,6 +345,14 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({
     });
   };
 
+  useEffect(() => {
+    setVisibleProvinceCount(10);
+  }, [provinces]);
+
+  useEffect(() => {
+    setVisiblePhotoCount(36);
+  }, [viewMode, selectedProvince?.id, selectedCity, cityVisits.length]);
+
   // Render City Selection Screen
   if (viewMode === AlbumViewMode.CITY_SELECT && selectedProvince) {
     return (
@@ -400,6 +411,19 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({
   if (viewMode === AlbumViewMode.PHOTO_GRID && selectedProvince) {
     const photos = getCurrentPhotos();
     const visits = getCurrentVisits();
+    let remainingVisiblePhotos = visiblePhotoCount;
+    const visibleVisits = visits
+      .map((visit) => {
+        if (remainingVisiblePhotos <= 0) {
+          return null;
+        }
+
+        const nextPhotos = visit.photos.slice(0, remainingVisiblePhotos);
+        remainingVisiblePhotos -= nextPhotos.length;
+
+        return nextPhotos.length > 0 ? { ...visit, photos: nextPhotos } : null;
+      })
+      .filter((visit): visit is ProvinceVisit => visit !== null);
 
     return (
       <div className="flex flex-col h-full bg-white">
@@ -505,7 +529,8 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({
         {/* Photo Grid */}
         <div className="flex-1 overflow-y-auto p-1">
           {visits.length > 0 ? (
-            visits.map(visit => {
+            <>
+            {visibleVisits.map(visit => {
               const cityName = normalizeCityName(visit.city);
               return (
                 <div key={visit.id} className="mb-6">
@@ -589,7 +614,19 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({
                   </div>
                 </div>
               );
-            })
+            })}
+          
+          {visiblePhotoCount < photos.length && (
+            <div className="flex justify-center px-4 py-4">
+              <button
+                onClick={() => setVisiblePhotoCount((current) => current + 36)}
+                className="rounded-full bg-white px-4 py-2 text-sm font-medium text-text-sub shadow-sm transition-colors hover:text-primary"
+              >
+                加载更多照片
+              </button>
+            </div>
+          )}
+            </>
           ) : (
             <div className="flex flex-col items-center justify-center py-20 text-text-sub">
               <ImageIcon size={48} className="mb-4 opacity-30" />
@@ -671,7 +708,7 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({
 
       <div className="flex-1 overflow-y-auto p-4">
         <div className="grid grid-cols-2 gap-4">
-          {visitedProvinces.map(province => {
+          {visibleVisitedProvinces.map(province => {
             const firstPhoto = province.photos[0];
             const isFirstPhotoVideo = firstPhoto && isVideoUrl(firstPhoto);
 
@@ -718,6 +755,16 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({
             <span className="text-xs font-bold">更多足迹等你点亮</span>
           </div>
         </div>
+        {visibleProvinceCount < visitedProvinces.length && (
+          <div className="flex justify-center pt-4">
+            <button
+              onClick={() => setVisibleProvinceCount((current) => current + 10)}
+              className="rounded-full bg-white px-4 py-2 text-sm font-medium text-text-sub shadow-sm transition-colors hover:text-primary"
+            >
+              加载更多相册
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -9,11 +9,6 @@ type SupabaseAsset = {
 
 const PREVIEW_SUFFIX = '__preview.jpg';
 
-const TRANSFORM_BY_VARIANT: Record<Exclude<MediaVariant, 'full'>, { width: number; height: number; quality: number }> = {
-  thumb: { width: 360, height: 360, quality: 60 },
-  card: { width: 960, height: 1200, quality: 72 },
-};
-
 export const isVideoUrl = (url: string): boolean => {
   const cleanUrl = url.split('?')[0].toLowerCase();
   return ['.mp4', '.mov', '.webm', '.avi', '.m4v'].some((extension) => cleanUrl.endsWith(extension));
@@ -76,23 +71,16 @@ export const getPreviewMediaUrl = (url: string): string => {
 };
 
 export const getDisplayMediaUrl = (url: string, variant: MediaVariant = 'card'): string => {
-  if (!url || variant === 'full' || isVideoUrl(url)) {
+  if (!url || isVideoUrl(url)) {
     return url;
   }
 
-  const asset = parseSupabaseAsset(url);
-  if (!asset) {
+  if (variant === 'full') {
     return url;
   }
 
-  const transform = TRANSFORM_BY_VARIANT[variant];
-
-  return supabase.storage.from(asset.bucket).getPublicUrl(asset.path, {
-    transform: {
-      width: transform.width,
-      height: transform.height,
-      quality: transform.quality,
-      resize: 'cover',
-    },
-  }).data.publicUrl;
+  // Prefer the uploaded preview asset directly. The project's render/image
+  // endpoint currently rejects transform requests, which adds a slow failing
+  // request on mobile before falling back.
+  return getPreviewMediaUrl(url);
 };

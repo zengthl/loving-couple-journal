@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Heart, Lock, MapPin, Play } from 'lucide-react';
 import { TimelineEvent } from '../types';
 import { EventDetailModal } from '../components/EventDetailModal';
@@ -29,8 +29,33 @@ export const TimelineScreen: React.FC<TimelineScreenProps> = ({
   isGuest,
 }) => {
   const [viewingEvent, setViewingEvent] = useState<TimelineEvent | null>(null);
+  const [visibleEventCount, setVisibleEventCount] = useState(8);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLongPress = useRef(false);
+  const visibleEventIds = new Set(events.slice(0, visibleEventCount).map((event) => event.id));
+
+  useEffect(() => {
+    setVisibleEventCount(8);
+  }, [events]);
+
+  useEffect(() => {
+    if (visibleEventCount >= events.length || !loadMoreRef.current) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setVisibleEventCount((current) => Math.min(current + 8, events.length));
+        }
+      },
+      { rootMargin: '320px 0px' }
+    );
+
+    observer.observe(loadMoreRef.current);
+    return () => observer.disconnect();
+  }, [events.length, visibleEventCount]);
 
   const months = Array.from(new Set<string>(events.map((event) => `${event.year}-${event.month}`))).map((value) => {
     const [year, month] = value.split('-');
@@ -177,7 +202,7 @@ export const TimelineScreen: React.FC<TimelineScreenProps> = ({
 
       <div className="flex-1 px-5 pb-20 pt-2">
         {months.map(({ month, year }) => {
-          const monthEvents = events.filter((event) => event.month === month && event.year === year);
+          const monthEvents = events.filter((event) => event.month === month && event.year === year && visibleEventIds.has(event.id));
           if (monthEvents.length === 0) {
             return null;
           }
@@ -254,6 +279,14 @@ export const TimelineScreen: React.FC<TimelineScreenProps> = ({
             </div>
           );
         })}
+
+        {visibleEventCount < events.length && (
+          <div ref={loadMoreRef} className="flex justify-center py-6">
+            <div className="rounded-full bg-white/90 px-4 py-2 text-xs font-medium text-text-sub shadow-sm">
+              正在加载更多动态...
+            </div>
+          </div>
+        )}
       </div>
 
       {viewingEvent && (

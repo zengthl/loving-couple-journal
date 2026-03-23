@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { X, Trash2, Download, Play, Pause } from 'lucide-react';
+import { ProgressiveImage } from './ProgressiveImage';
 
 interface ImageViewerProps {
     isOpen: boolean;
@@ -115,10 +116,11 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({
                         )}
                     </div>
                 ) : (
-                    <img
+                    <ProgressiveImage
                         src={imageUrl}
                         alt="Full screen view"
                         className="max-h-full max-w-full object-contain shadow-2xl"
+                        showLoader={false}
                     />
                 )}
             </div>

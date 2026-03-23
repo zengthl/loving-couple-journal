@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowLeft, Calendar, Plus, Trash2, Download } from 'lucide-react';
 import { ProvinceVisit } from '../types';
 import { OptimizedImage } from '../components/OptimizedImage';
+import { ProgressiveImage } from '../components/ProgressiveImage';
 
 interface CityTimelineScreenProps {
   cityName: string;
@@ -198,10 +199,11 @@ export const CityTimelineScreen: React.FC<CityTimelineScreenProps> = ({
           className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
           onClick={() => setPreviewPhoto(null)}
         >
-          <img
+          <ProgressiveImage
             src={previewPhoto}
             alt="Preview"
             className="max-w-full max-h-full object-contain"
+            showLoader={false}
           />
         </div>
       )}

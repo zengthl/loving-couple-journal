@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { X, Edit2, Trash2, MapPin, Calendar, Image as ImageIcon, Save, Loader2, ChevronLeft, ChevronRight, Download, Play } from 'lucide-react';
 import { TimelineEvent, DiscoveryItem } from '../types';
+import { OptimizedImage } from './OptimizedImage';
+import { ProgressiveImage } from './ProgressiveImage';
 
 type DetailItem = TimelineEvent | DiscoveryItem;
 
@@ -157,7 +159,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                             </div>
                         </>
                     ) : (
-                        <img src={img} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                        <OptimizedImage src={img} alt="" variant="card" loading="eager" decoding="async" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                     )}
                 </div>
             );
@@ -177,7 +179,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                             {isVideo ? (
                                 <video src={img} className="w-full h-full object-cover" muted playsInline />
                             ) : (
-                                <img src={img} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                <OptimizedImage src={img} alt="" variant="thumb" loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                             )}
 
                             {isVideo && (
@@ -228,11 +230,12 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                             playsInline
                         />
                     ) : (
-                        <img
+                        <ProgressiveImage
                             src={currentImage}
                             alt=""
                             className="max-w-full max-h-full object-contain"
                             style={{ touchAction: 'pinch-zoom' }}
+                            showLoader={false}
                         />
                     )}
                 </div>
@@ -273,7 +276,7 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
                                     {isVideoUrl(img) ? (
                                         <video src={img} className="w-full h-full object-cover" muted playsInline />
                                     ) : (
-                                        <img src={img} alt="" className="w-full h-full object-cover" />
+                                        <OptimizedImage src={img} alt="" variant="thumb" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                                     )}
                                 </button>
                             ))}
