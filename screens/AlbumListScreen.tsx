@@ -371,10 +371,11 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({
       cancelIdleCallback?: (handle: number) => void;
     };
 
-    const prefetch = () => {
-      visibleVisitedProvinces.slice(0, 3).forEach((province) => {
-        void fetchProvinceVisits('', province.id);
-      });
+    const prefetch = async () => {
+      const hotProvinces = visibleVisitedProvinces.slice(0, 4);
+      for (const province of hotProvinces) {
+        await fetchProvinceVisits('', province.id);
+      }
     };
 
     if (typeof idleHost.requestIdleCallback === 'function') {

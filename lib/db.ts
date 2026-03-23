@@ -2,6 +2,45 @@ import { supabase, DbTimelineEvent, DbProvince, DbDiscoveryItem, DbAnniversary }
 import { TimelineEvent, Province, DiscoveryItem, Anniversary, ProvinceVisit, CitySummary } from '../types';
 const GUEST_VISIT_CACHE_TTL_MS = 5 * 60 * 1000;
 const guestProvinceVisitCache = new Map<string, { timestamp: number; data: ProvinceVisit[] }>();
+const guestProvinceVisitInflight = new Map<string, Promise<ProvinceVisit[]>>();
+
+const readGuestProvinceVisitCache = (cacheKey: string): ProvinceVisit[] | null => {
+    const memoryValue = guestProvinceVisitCache.get(cacheKey);
+    if (memoryValue && Date.now() - memoryValue.timestamp < GUEST_VISIT_CACHE_TTL_MS) {
+        return memoryValue.data;
+    }
+
+    try {
+        const raw = window.sessionStorage.getItem(`guest-cache:${cacheKey}`);
+        if (!raw) return null;
+
+        const parsed = JSON.parse(raw) as { timestamp: number; data: ProvinceVisit[] };
+        if (Date.now() - parsed.timestamp >= GUEST_VISIT_CACHE_TTL_MS) {
+            window.sessionStorage.removeItem(`guest-cache:${cacheKey}`);
+            return null;
+        }
+
+        guestProvinceVisitCache.set(cacheKey, parsed);
+        return parsed.data;
+    } catch {
+        return null;
+    }
+};
+
+const writeGuestProvinceVisitCache = (cacheKey: string, data: ProvinceVisit[]) => {
+    const entry = {
+        timestamp: Date.now(),
+        data
+    };
+
+    guestProvinceVisitCache.set(cacheKey, entry);
+
+    try {
+        window.sessionStorage.setItem(`guest-cache:${cacheKey}`, JSON.stringify(entry));
+    } catch {
+        // Ignore storage quota or availability issues.
+    }
+};
 
 // ==================== Timeline Events ====================
 
@@ -603,38 +642,54 @@ function toProvinceVisit(db: DbProvinceVisit): ProvinceVisit {
 export async function fetchProvinceVisits(userId: string, provinceId: string): Promise<ProvinceVisit[]> {
     if (!userId) {
         const cacheKey = `province-visits:${provinceId}`;
-        const cached = guestProvinceVisitCache.get(cacheKey);
-        if (cached && Date.now() - cached.timestamp < GUEST_VISIT_CACHE_TTL_MS) {
-            return cached.data;
+        const cached = readGuestProvinceVisitCache(cacheKey);
+        if (cached) {
+            return cached;
+        }
+
+        const inflight = guestProvinceVisitInflight.get(cacheKey);
+        if (inflight) {
+            return inflight;
         }
     }
 
-    let query = supabase
-        .from('user_province_visits')
-        .select('id, user_id, province_id, visit_date, photos, city, created_at')
-        .eq('province_id', provinceId);
+    const loadPromise = (async () => {
+        let query = supabase
+            .from('user_province_visits')
+            .select('id, user_id, province_id, visit_date, photos, city, created_at')
+            .eq('province_id', provinceId);
 
-    if (userId) {
-        query = query.eq('user_id', userId);
-    }
+        if (userId) {
+            query = query.eq('user_id', userId);
+        }
 
-    const { data, error } = await query.order('visit_date', { ascending: false });
+        const { data, error } = await query.order('visit_date', { ascending: false });
 
-    if (error) {
-        console.error('Error fetching province visits:', error);
-        return [];
-    }
+        if (error) {
+            console.error('Error fetching province visits:', error);
+            return [];
+        }
 
-    const visits = (data || []).map(toProvinceVisit);
+        const visits = (data || []).map(toProvinceVisit);
+
+        if (!userId) {
+            writeGuestProvinceVisitCache(`province-visits:${provinceId}`, visits);
+        }
+
+        return visits;
+    })();
 
     if (!userId) {
-        guestProvinceVisitCache.set(`province-visits:${provinceId}`, {
-            timestamp: Date.now(),
-            data: visits
-        });
+        const cacheKey = `province-visits:${provinceId}`;
+        guestProvinceVisitInflight.set(cacheKey, loadPromise);
+        try {
+            return await loadPromise;
+        } finally {
+            guestProvinceVisitInflight.delete(cacheKey);
+        }
     }
 
-    return visits;
+    return loadPromise;
 }
 
 // Group visits by city for city selection screen
