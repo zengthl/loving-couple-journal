@@ -94,13 +94,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onGues
     resetMessages();
   };
 
-  const handleGuestEntry = () => {
-    if (loading || isAuthOpen) {
-      return;
-    }
-    onGuestLogin();
-  };
-
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
     resetMessages();
@@ -163,18 +156,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onGues
   };
 
   return (
-    <div
-      className="relative min-h-[100svh] overflow-hidden bg-[#09070d] text-white"
-      onClick={handleGuestEntry}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(event) => {
-        if ((event.key === 'Enter' || event.key === ' ') && !isAuthOpen && !loading) {
-          event.preventDefault();
-          onGuestLogin();
-        }
-      }}
-    >
+    <div className="relative min-h-[100svh] overflow-hidden bg-[#09070d] text-white">
       <img
         src="/assets/landing-hero.jpg"
         alt="黄昏海边牵手的背影"
@@ -182,85 +164,98 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess, onGues
       />
       <div className="landing-grain absolute inset-0 opacity-30" />
       <div className="landing-vignette absolute inset-0" />
-      <div className="landing-glow absolute -left-14 top-[22%] h-44 w-44 rounded-full bg-[#8f7fe8]/18 blur-3xl" />
-      <div className="landing-glow absolute -right-10 top-[10%] h-52 w-52 rounded-full bg-[#f7a9c8]/28 blur-3xl [animation-delay:-4s]" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-[#09070d] via-[#09070d]/50 to-transparent" />
+      <div className="landing-glow absolute -left-10 top-[18%] h-44 w-44 rounded-full bg-[#8f7fe8]/18 blur-3xl" />
+      <div className="landing-glow absolute right-0 top-[8%] h-52 w-52 rounded-full bg-[#f7a9c8]/28 blur-3xl [animation-delay:-4s]" />
+
+      <span className="pointer-events-none absolute left-16 top-[14%] z-10 text-white/22">
+        <Heart size={18} className="fill-current" />
+      </span>
+      <span className="pointer-events-none absolute right-9 top-[40%] z-10 text-[#f4a2c3]/60">
+        <Heart size={13} className="fill-current" />
+      </span>
+      <span className="pointer-events-none absolute bottom-[23%] left-10 z-10 text-white/14">
+        <div className="grid grid-cols-4 gap-[3px]">
+          {Array.from({ length: 16 }).map((_, index) => (
+            <span key={index} className="h-[3px] w-[3px] rounded-full bg-current" />
+          ))}
+        </div>
+      </span>
 
       <button
         type="button"
-        onClick={(event) => {
-          event.stopPropagation();
-          if (isAuthOpen) {
-            closePanel();
-          } else {
-            openPanel('login');
-          }
-        }}
-        className="landing-instruction absolute right-4 top-[max(1rem,env(safe-area-inset-top))] z-30 inline-flex items-center gap-2 rounded-full border border-white/14 bg-black/18 px-4 py-2 text-[12px] font-semibold tracking-[0.18em] text-white/92 uppercase"
+        onClick={() => (isAuthOpen ? closePanel() : openPanel('login'))}
+        className="landing-instruction absolute right-4 top-[max(1rem,env(safe-area-inset-top))] z-30 inline-flex items-center gap-2 rounded-full border border-white/12 bg-black/18 px-4 py-2 text-[12px] font-semibold tracking-[0.14em] text-white/92"
       >
         {isAuthOpen ? <X size={16} /> : <Menu size={16} />}
         <span>{isAuthOpen ? '收起' : '登录'}</span>
       </button>
 
-      <main className="relative z-10 flex min-h-[100svh] flex-col justify-between px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(1.25rem,env(safe-area-inset-top))]">
-        <div className="pt-6">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/10 px-3 py-1.5 text-[11px] font-semibold tracking-[0.28em] text-white/88 uppercase backdrop-blur-md">
+      <main className="relative z-10 flex min-h-[100svh] flex-col px-8 pb-[max(2rem,env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))] text-center">
+        <div className="pt-10">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/10 px-4 py-2 text-[11px] font-semibold tracking-[0.28em] text-white/90 uppercase backdrop-blur-md">
             <Heart size={13} className="fill-current" />
-            Loving
+            LOVING
           </div>
         </div>
 
-        <div className="pb-7">
-          <div className="max-w-[16rem] animate-[fadeIn_0.9s_ease-out]">
-            <p className="text-[11px] font-semibold tracking-[0.28em] text-white/62 uppercase">
-              Couple Journal
-            </p>
-            <h1 className="mt-3 text-[2.65rem] font-black leading-[1.02] tracking-[-0.055em] text-white [font-family:'Noto_Serif_SC','Noto_Sans_SC',serif]">
-              把心动
-              <span className="block">收藏成日记</span>
+        <div className="mt-auto pb-10">
+          <div className="mx-auto max-w-[18rem] animate-[fadeIn_0.9s_ease-out]">
+            <h1 className="text-[3.7rem] leading-[0.88] text-white drop-shadow-[0_10px_28px_rgba(0,0,0,0.25)] [font-family:'Dancing_Script','Times_New_Roman',cursive]">
+              Our Forever
+              <span className="block">Begins Here</span>
             </h1>
-            <p className="mt-4 max-w-[14rem] text-[14px] leading-6 text-white/76 [font-family:'Manrope','Noto_Sans_SC',sans-serif]">
-              轻触任意位置，先以访客模式进入。
-              登录与注册入口已经收在右上角。
+
+            <p className="mt-4 text-[14px] leading-7 text-white/86 [font-family:'Manrope','Noto_Sans_SC',sans-serif]">
+              A quiet space for our loudest laughs
+              <br />
+              and softest whispers.
             </p>
-          </div>
 
-          <div className="mt-7">
+            <div className="mt-9 flex items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => openPanel('login')}
+                className="inline-flex min-w-[8.5rem] items-center justify-center gap-2 rounded-full bg-[#b5337f] px-5 py-4 text-[13px] font-semibold tracking-[0.1em] text-white shadow-[0_18px_45px_rgba(181,51,127,0.35)] transition-transform hover:scale-[1.02]"
+              >
+                <LogIn size={16} />
+                账号登录
+              </button>
+
+              <button
+                type="button"
+                onClick={() => openPanel('register')}
+                className="inline-flex min-w-[8.5rem] items-center justify-center gap-2 rounded-full border border-white/16 bg-white/10 px-5 py-4 text-[13px] font-semibold tracking-[0.1em] text-white backdrop-blur-md transition-transform hover:scale-[1.02]"
+              >
+                <UserPlus size={16} />
+                注册
+              </button>
+            </div>
+
             <button
               type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                onGuestLogin();
-              }}
-              className="landing-instruction inline-flex w-full max-w-[21rem] items-center gap-3 rounded-full border border-white/12 bg-white/10 px-4 py-4 text-left text-white/90"
+              onClick={onGuestLogin}
+              className="mt-6 inline-flex items-center gap-2 text-[15px] font-medium text-white/86 transition-colors hover:text-white"
             >
-              <span className="inline-flex h-2.5 w-2.5 rounded-full bg-[#f7b2cf] shadow-[0_0_18px_rgba(247,178,207,0.65)]" />
-              <div>
-                <p className="text-[11px] font-semibold tracking-[0.24em] uppercase text-white/62">
-                  Guest Entry
-                </p>
-                <p className="mt-1 text-sm">点击屏幕任意位置立即进入</p>
-              </div>
-            </button>
-
-            <button
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                openPanel('login');
-              }}
-              className="mt-4 inline-flex items-center gap-2 pl-2 text-sm text-white/72 transition-colors hover:text-white"
-            >
-              账号登录
-              <ArrowRight size={15} />
+              访客登录
+              <ArrowRight size={16} />
             </button>
           </div>
         </div>
+
+        <footer className="pb-2 text-center text-white/68 [font-family:'Manrope','Noto_Sans_SC',sans-serif]">
+          <div className="text-sm font-semibold">Kinetic Love Letter</div>
+          <div className="mt-3 flex items-center justify-center gap-5 text-[13px]">
+            <span>Our Story</span>
+            <span>Privacy</span>
+            <span>Terms</span>
+          </div>
+          <div className="mt-3 text-[12px] text-white/54">© 2024 Kinetic Love Letter. All rights reserved.</div>
+        </footer>
       </main>
 
       {isAuthOpen && (
         <div
-          className="fixed inset-0 z-30 flex items-start justify-end bg-[rgba(6,5,12,0.26)] px-4 pb-4 pt-[calc(max(1rem,env(safe-area-inset-top))+3rem)] backdrop-blur-[2px]"
+          className="fixed inset-0 z-40 flex items-start justify-end bg-[rgba(6,5,12,0.32)] px-4 pb-4 pt-[calc(max(1rem,env(safe-area-inset-top))+3rem)] backdrop-blur-[2px]"
           onClick={closePanel}
         >
           <div
