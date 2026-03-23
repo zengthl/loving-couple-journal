@@ -51,59 +51,59 @@ export const MapScreen: React.FC<MapScreenProps> = ({ provinces, onNavigateToUpl
 
   return (
     <div className="relative flex flex-col overflow-hidden bg-[#fbf8f3]" style={{ height: '100vh', width: '100%' }}>
-      <div className="absolute top-0 left-0 right-0 z-30 pt-12 pb-6 px-6 bg-gradient-to-b from-[#fbf8f3] via-[#fbf8f3]/90 to-transparent pointer-events-none">
-        <div className="pointer-events-auto flex items-end justify-between mb-4">
+      <div className="absolute top-0 left-0 right-0 z-30 bg-gradient-to-b from-[#fbf8f3] via-[#fbf8f3]/90 to-transparent px-6 pb-6 pt-12 pointer-events-none">
+        <div className="pointer-events-auto mb-4 flex items-end justify-between gap-4">
           <div>
             <h1 className="text-[28px] font-black tracking-tight text-[#4A3B3B] leading-none">我们的足迹</h1>
-            <p className="text-sm text-gray-400 mt-1 font-medium">点亮中国，记录每一份爱与旅行</p>
+            <p className="mt-1 text-sm font-medium text-gray-400">点亮中国，记录每一份爱与旅行</p>
           </div>
 
-          <div className="relative">
-            {isGuest && (
-              <button
-                onClick={onNavigateToAlbums}
-                className="absolute right-0 top-0 z-50 flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-text-main shadow-sm transition-colors hover:text-primary"
-              >
-                <BookOpen size={16} />
-                相册
-              </button>
-            )}
+          {isGuest ? (
             <button
-              onClick={() => setShowMenu((current) => !current)}
-              className={`${isGuest ? 'invisible pointer-events-none' : ''} relative z-50 flex h-10 w-10 items-center justify-center rounded-full bg-white text-gray-400 shadow-sm transition-colors hover:text-primary`}
+              onClick={onNavigateToAlbums}
+              className="shrink-0 whitespace-nowrap rounded-full bg-white px-4 py-2 text-sm font-bold text-text-main shadow-sm transition-colors hover:text-primary"
             >
-              {showMenu ? <X size={20} /> : <Menu size={20} />}
+              相册
             </button>
+          ) : (
+            <div className="relative shrink-0">
+              <button
+                onClick={() => setShowMenu((current) => !current)}
+                className="relative z-50 flex h-10 w-10 items-center justify-center rounded-full bg-white text-gray-400 shadow-sm transition-colors hover:text-primary"
+              >
+                {showMenu ? <X size={20} /> : <Menu size={20} />}
+              </button>
 
-            {!isGuest && showMenu && (
-              <div className="absolute right-0 top-12 z-40 flex min-w-[160px] flex-col gap-1 rounded-2xl border border-gray-100 bg-white p-2 shadow-xl origin-top-right animate-fade-in">
-                <button
-                  onClick={() => {
-                    setShowMenu(false);
-                    onNavigateToUpload();
-                  }}
-                  className="flex items-center gap-3 rounded-xl px-4 py-3 text-left transition-colors hover:bg-gray-50"
-                >
-                  <div className="rounded-lg bg-primary/10 p-2 text-primary">
-                    <Upload size={18} />
-                  </div>
-                  <span className="text-sm font-bold text-text-main">上传足迹</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setShowMenu(false);
-                    onNavigateToAlbums();
-                  }}
-                  className="flex items-center gap-3 rounded-xl px-4 py-3 text-left transition-colors hover:bg-gray-50"
-                >
-                  <div className="rounded-lg bg-blue-50 p-2 text-blue-500">
-                    <BookOpen size={18} />
-                  </div>
-                  <span className="text-sm font-bold text-text-main">浏览相册</span>
-                </button>
-              </div>
-            )}
-          </div>
+              {showMenu && (
+                <div className="absolute right-0 top-12 z-40 flex min-w-[160px] origin-top-right animate-fade-in flex-col gap-1 rounded-2xl border border-gray-100 bg-white p-2 shadow-xl">
+                  <button
+                    onClick={() => {
+                      setShowMenu(false);
+                      onNavigateToUpload();
+                    }}
+                    className="flex items-center gap-3 rounded-xl px-4 py-3 text-left transition-colors hover:bg-gray-50"
+                  >
+                    <div className="rounded-lg bg-primary/10 p-2 text-primary">
+                      <Upload size={18} />
+                    </div>
+                    <span className="text-sm font-bold text-text-main">上传足迹</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowMenu(false);
+                      onNavigateToAlbums();
+                    }}
+                    className="flex items-center gap-3 rounded-xl px-4 py-3 text-left transition-colors hover:bg-gray-50"
+                  >
+                    <div className="rounded-lg bg-blue-50 p-2 text-blue-500">
+                      <BookOpen size={18} />
+                    </div>
+                    <span className="text-sm font-bold text-text-main">浏览相册</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="pointer-events-auto flex items-center gap-4 rounded-2xl border border-white/60 bg-white/80 p-4 shadow-sm backdrop-blur-md transition-transform active:scale-95">
