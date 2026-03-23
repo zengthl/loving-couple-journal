@@ -25,8 +25,8 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeScreen, onNaviga
 
   return (
     <div
-      className={`relative flex h-full min-h-screen w-full flex-col overflow-x-hidden ${
-        isAppShell ? 'mx-auto max-w-md bg-background-light shadow-2xl' : 'bg-[#09070d]'
+      className={`relative mx-auto flex h-full min-h-screen w-full max-w-md flex-col overflow-x-hidden ${
+        isAppShell ? 'bg-background-light shadow-2xl' : 'bg-[#09070d] shadow-2xl'
       }`}
     >
       {showUserInfo && (
