@@ -20,6 +20,8 @@ interface AlbumListScreenProps {
 
 const LIVE_PHOTO_MAX_SECONDS = 4.5;
 const LIVE_PHOTO_PRESS_DELAY_MS = 200;
+const getInitialProvinceCount = () => (typeof window !== 'undefined' && window.innerWidth < 640 ? 6 : 10);
+const getInitialPhotoCount = () => (typeof window !== 'undefined' && window.innerWidth < 640 ? 12 : 24);
 
 // Download file function
 const downloadFile = async (url: string, filename?: string): Promise<void> => {
@@ -88,8 +90,9 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({
 
   // Live photo detection
   const [livePhotoMap, setLivePhotoMap] = useState<Record<string, boolean>>({});
-  const [visibleProvinceCount, setVisibleProvinceCount] = useState(10);
-  const [visiblePhotoCount, setVisiblePhotoCount] = useState(36);
+  const [visibleProvinceCount, setVisibleProvinceCount] = useState(getInitialProvinceCount);
+  const [visiblePhotoCount, setVisiblePhotoCount] = useState(getInitialPhotoCount);
+  const [isProvinceLoading, setIsProvinceLoading] = useState(false);
 
   const visitedProvinces = provinces.filter(p => p.visited);
   const visibleVisitedProvinces = visitedProvinces.slice(0, visibleProvinceCount);
@@ -105,6 +108,7 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({
   // Handle province click - check if multiple cities exist
   const handleProvinceClick = useCallback(async (province: Province) => {
     setSelectedProvince(province);
+    setIsProvinceLoading(true);
 
     // Fetch visits for this province (shared journal - all users)
     const visits = await fetchProvinceVisits('', province.id);
@@ -113,6 +117,7 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({
       // No visits, show empty state
       setCityVisits([]);
       setCitySummaries([]);
+      setIsProvinceLoading(false);
       setViewMode(AlbumViewMode.PHOTO_GRID);
       return;
     }
@@ -128,14 +133,17 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({
       if (city.visits.length === 1) {
         // Single visit - show photo grid directly
         setSelectedCity(city.cityName);
+        setIsProvinceLoading(false);
         setViewMode(AlbumViewMode.PHOTO_GRID);
       } else {
         // Multiple visits to same city - show timeline
         setSelectedCity(city.cityName);
+        setIsProvinceLoading(false);
         setViewMode(AlbumViewMode.CITY_TIMELINE);
       }
     } else {
       // Multiple cities - show city selection
+      setIsProvinceLoading(false);
       setViewMode(AlbumViewMode.CITY_SELECT);
     }
   }, [userId]);
@@ -346,12 +354,37 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({
   };
 
   useEffect(() => {
-    setVisibleProvinceCount(10);
+    setVisibleProvinceCount(getInitialProvinceCount());
   }, [provinces]);
 
   useEffect(() => {
-    setVisiblePhotoCount(36);
+    setVisiblePhotoCount(getInitialPhotoCount());
   }, [viewMode, selectedProvince?.id, selectedCity, cityVisits.length]);
+
+  useEffect(() => {
+    if (viewMode !== AlbumViewMode.PROVINCE_LIST) {
+      return;
+    }
+
+    const idleHost = window as Window & {
+      requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
+      cancelIdleCallback?: (handle: number) => void;
+    };
+
+    const prefetch = () => {
+      visibleVisitedProvinces.slice(0, 3).forEach((province) => {
+        void fetchProvinceVisits('', province.id);
+      });
+    };
+
+    if (typeof idleHost.requestIdleCallback === 'function') {
+      const handle = idleHost.requestIdleCallback(prefetch, { timeout: 1200 });
+      return () => idleHost.cancelIdleCallback?.(handle);
+    }
+
+    const timeoutId = window.setTimeout(prefetch, 500);
+    return () => window.clearTimeout(timeoutId);
+  }, [viewMode, visibleVisitedProvinces]);
 
   // Render City Selection Screen
   if (viewMode === AlbumViewMode.CITY_SELECT && selectedProvince) {
@@ -404,6 +437,34 @@ export const AlbumListScreen: React.FC<AlbumListScreenProps> = ({
         onDownloadPhoto={isGuest ? async () => {} : handleDownloadPhoto}
         isGuest={isGuest}
       />
+    );
+  }
+
+  if (isProvinceLoading && selectedProvince) {
+    return (
+      <div className="flex h-full flex-col bg-background-light">
+        <header className="sticky top-0 z-20 flex items-center justify-between border-b border-primary/10 bg-background-light/95 px-4 py-4 backdrop-blur-md">
+          <button
+            onClick={() => {
+              setIsProvinceLoading(false);
+              setSelectedProvince(null);
+            }}
+            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+          >
+            <ArrowLeft size={20} className="text-text-main" />
+          </button>
+          <h1 className="text-xl font-bold text-text-main">{selectedProvince.name}</h1>
+          <div className="w-10"></div>
+        </header>
+
+        <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center text-text-sub">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <div>
+            <p className="text-base font-semibold text-text-main">正在打开相册</p>
+            <p className="mt-1 text-sm text-text-sub">先整理当前城市和照片，再进入浏览</p>
+          </div>
+        </div>
+      </div>
     );
   }
 
